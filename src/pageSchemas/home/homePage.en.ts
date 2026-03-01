@@ -205,8 +205,8 @@ const schema: PageSchema = {
                     type: "pricing",
                     variant: "starter",
                     title: "Starter",
-                    price: "€9",
-                    tokens: 900,
+                    price: "€10",
+                    tokens: 1000,
                     badgeTop: "Starter Plan",
                     description: "Perfect for first-time users.",
                     features: [
