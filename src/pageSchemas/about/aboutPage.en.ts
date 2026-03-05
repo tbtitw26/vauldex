@@ -65,19 +65,19 @@ const schema: PageSchema = {
                 title: "Our Evolution",
                 steps: [
                     {
-                        title: "2021 — Launch",
+                        title: "Launch",
                         description: "Started as a simple CV generator focused on fast, clean resume creation."
                     },
                     {
-                        title: "2022 — AI Engine Added",
+                        title: "AI Engine Added",
                         description: "We introduced smart keyword optimization and ATS improvements."
                     },
                     {
-                        title: "2023 — HR Team Added",
+                        title: "HR Team Added",
                         description: "Experienced HR experts joined to provide personalized CV reviews."
                     },
                     {
-                        title: "2024 — 10,000+ Users",
+                        title: "10,000+ Users",
                         description: "Trusted by job seekers worldwide, across 15+ industries."
                     },
                 ],

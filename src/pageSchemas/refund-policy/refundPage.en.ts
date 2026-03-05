@@ -121,7 +121,7 @@ const refundPolicySchema: PageSchema = {
             type: "text",
             title: "11. Examples",
             bullets: [
-                "Unused tokens: You purchased £20 = 2000 tokens, used 300 tokens → 1700 tokens remain. Refund possible for 1700 tokens (minus fees).",
+                "Unused tokens: You purchased (for example) £20 = 2000 tokens, used 300 tokens → 1700 tokens remain. Refund possible for 1700 tokens (minus fees).",
                 "Used tokens: If tokens were spent to generate/download a CV, a refund is only possible if the file was materially defective.",
                 "Promotional tokens: 100 bonus tokens received in a promotion → non-refundable."
             ]

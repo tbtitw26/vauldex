@@ -49,7 +49,6 @@ const StoryTimeline: React.FC<{ steps: TimelineStep[] }> = ({ steps }) => {
                                 <div className={styles.icon}>
                                     {icons[step.icon || "resume"]}
                                 </div>
-                                <div className={styles.year}>{step.year}</div>
                             </div>
 
                             <div className={styles.middleDot} />

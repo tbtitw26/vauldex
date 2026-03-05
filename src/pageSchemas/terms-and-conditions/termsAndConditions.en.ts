@@ -56,7 +56,7 @@ const termsSchema: PageSchema = {
                 "2.2. Draft – a preliminary version of a CV or resume created by the user.",
                 "2.3. Final File – the completed CV or resume downloaded by the user.",
                 "2.4. Client / you – any individual or entity using the Services.",
-                "2.5. Tokens – internal digital credits used to pay for Services (1 GBP or 1 EUR = 100 Tokens).",
+                "2.5. Tokens – internal digital credits used to pay for Services",
             ],
         },
 
@@ -77,7 +77,7 @@ const termsSchema: PageSchema = {
             bullets: [
                 "4.1. Payments must be completed using the methods listed on the website.",
                 "4.2. Services become available only after successful payment.",
-                "4.3. Prices are displayed in GBP or EUR and may include applicable taxes.",
+                "4.3. Prices are displayed in GBP (£), EUR (€), USD ($), AUD ($), CAD ($), NZD ($) or NOK (kr.) and may include applicable taxes.",
                 "4.4. Tokens represent prepaid access to digital Services and have no cash value.",
             ],
         },
