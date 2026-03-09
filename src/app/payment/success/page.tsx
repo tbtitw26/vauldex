@@ -1,149 +1,225 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import styles from "./PaymentSuccess.module.scss";
+
+type PageState = "loading" | "pending" | "ok" | "error";
+
+type PendingPurchase = {
+    cpi?: string;
+    referenceId?: string;
+    tokens: number;
+    createdAt: number;
+    currency?: string;
+    amount?: number;
+    uiCurrency?: string;
+    uiAmount?: number;
+    service?: string;
+};
+
+type ConfirmResponse = {
+    status?: "pending" | "processing" | "credited" | "failed";
+    message?: string;
+    tokens?: number;
+    forced?: boolean;
+    payment?: {
+        cpi?: string;
+        referenceId?: string;
+        invoiceCurrency?: string;
+        invoiceAmount?: number;
+        uiCurrency?: string;
+        uiAmount?: number;
+        merchantName?: string;
+        status?: string;
+        resolution?: string;
+    };
+    spoynt?: {
+        status?: string;
+        resolution?: string;
+    };
+};
+
+const MAX_CONFIRM_ATTEMPTS = 15;
+const CONFIRM_RETRY_MS = 2000;
 
 export default function PaymentSuccessPage() {
     const sp = useSearchParams();
 
-    const [state, setState] = useState<"loading" | "ok">("loading");
-    const [msg, setMsg] = useState<string>("");
+    const [state, setState] = useState<PageState>("loading");
+    const [msg, setMsg] = useState<string>("Checking your payment with Spoynt...");
     const [creditedTokens, setCreditedTokens] = useState<number | null>(null);
-    const [pendingPurchase, setPendingPurchase] = useState<{
-        tokens: number;
-        createdAt: number;
-    } | null>(null);
+    const [pendingPurchase, setPendingPurchase] = useState<PendingPurchase | null>(null);
     const [referenceId, setReferenceId] = useState<string>("");
-    const [pendingEmail, setPendingEmail] = useState<string>("");
-    const lastAppliedTokensRef = useRef<number | null>(null);
+    const [paymentSnapshot, setPaymentSnapshot] = useState<ConfirmResponse["payment"] | null>(null);
 
-    const badgeClass = state === "ok" ? styles.badgeOk : styles.badgeLoading;
+    const cpiFromQuery = sp.get("cpi") || "";
+
+    const badgeClass =
+        state === "ok"
+            ? styles.badgeOk
+            : state === "pending"
+                ? styles.badgePending
+                : state === "error"
+                    ? styles.badgeError
+                    : styles.badgeLoading;
 
     useEffect(() => {
-        sp.get("cpi");
         try {
             const raw = localStorage.getItem("pendingPurchase");
             if (raw) {
-                const parsed = JSON.parse(raw);
+                const parsed = JSON.parse(raw) as Partial<PendingPurchase>;
                 if (parsed && Number.isFinite(parsed.tokens)) {
-                    setPendingPurchase({
+                    const hydratedPurchase: PendingPurchase = {
+                        cpi: String(parsed.cpi || cpiFromQuery || ""),
+                        referenceId: String(parsed.referenceId || localStorage.getItem("spoyntOrderRef") || ""),
                         tokens: Number(parsed.tokens),
                         createdAt: Number(parsed.createdAt) || Date.now(),
-                    });
+                        currency: parsed.currency ? String(parsed.currency) : undefined,
+                        amount: Number.isFinite(Number(parsed.amount)) ? Number(parsed.amount) : undefined,
+                        uiCurrency: parsed.uiCurrency ? String(parsed.uiCurrency) : undefined,
+                        uiAmount: Number.isFinite(Number(parsed.uiAmount)) ? Number(parsed.uiAmount) : undefined,
+                        service: parsed.service ? String(parsed.service) : undefined,
+                    };
+                    setPendingPurchase(hydratedPurchase);
+                    setReferenceId(hydratedPurchase.referenceId || "");
+                    return;
                 }
             }
 
-            if (!raw) {
-                const lastTokens = Number(localStorage.getItem("spoyntLastTokens"));
-                if (Number.isFinite(lastTokens) && lastTokens > 0) {
-                    setPendingPurchase({
-                        tokens: lastTokens,
-                        createdAt: Date.now(),
-                    });
-                } else {
-                    setPendingPurchase({
-                        tokens: 1,
-                        createdAt: Date.now(),
-                    });
-                }
+            if (cpiFromQuery) {
+                setPendingPurchase({
+                    cpi: cpiFromQuery,
+                    referenceId: localStorage.getItem("spoyntOrderRef") || "",
+                    tokens: Number(localStorage.getItem("spoyntLastTokens")) || 0,
+                    createdAt: Date.now(),
+                });
+                setReferenceId(localStorage.getItem("spoyntOrderRef") || "");
+                return;
             }
 
-            let storedRef = localStorage.getItem("spoyntOrderRef") || "";
-            if (!storedRef) {
-                storedRef = crypto.randomUUID();
-                localStorage.setItem("spoyntOrderRef", storedRef);
-            }
-            setReferenceId(storedRef);
-
-            const email = localStorage.getItem("pendingPurchaseEmail") || "";
-            setPendingEmail(email);
-        } catch {
-            setPendingPurchase({ tokens: 1, createdAt: Date.now() });
+            setState("error");
+            setMsg("Missing payment reference. Please contact support if you were charged.");
+        } catch (error) {
+            console.error("[Spoynt][client] failed to restore payment context", error);
+            setState("error");
+            setMsg("Could not restore your payment details.");
         }
-    }, [sp]);
+    }, [cpiFromQuery]);
 
     useEffect(() => {
+        const targetCpi = cpiFromQuery || pendingPurchase?.cpi || "";
+        if (!targetCpi || !pendingPurchase) return;
+
         let cancelled = false;
+        let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-        const tokensToCredit = pendingPurchase?.tokens ?? 0;
+        const confirmOnce = async (attempt: number) => {
+            if (cancelled) return;
 
-        if (!Number.isFinite(tokensToCredit) || tokensToCredit <= 0) {
-            return () => {
-                cancelled = true;
-            };
-        }
+            if (attempt === 1) {
+                setState("loading");
+                setMsg("Opening payment confirmation... If you completed 3DS, we are finalizing your order.");
+            } else {
+                setState("pending");
+                setMsg(`Waiting for Spoynt confirmation after 3DS... Attempt ${attempt}/${MAX_CONFIRM_ATTEMPTS}.`);
+            }
 
-        if (lastAppliedTokensRef.current === tokensToCredit) {
-            return () => {
-                cancelled = true;
-            };
-        }
-        lastAppliedTokensRef.current = tokensToCredit;
+            console.log("[Spoynt][client] confirm request", {
+                attempt,
+                cpi: targetCpi,
+                pendingPurchase,
+            });
 
-        const tryBuyTokens = async () => {
-            const run = () =>
-                fetch("/api/user/buy-tokens", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    credentials: "include",
-                    body: JSON.stringify({ amount: tokensToCredit }),
-                });
+            try {
+                const runConfirm = () =>
+                    fetch(`/api/spoynt/confirm?cpi=${encodeURIComponent(targetCpi)}`, {
+                        method: "GET",
+                        credentials: "include",
+                        cache: "no-store",
+                    });
 
-            let res = await run();
-            let data = await res.json().catch(() => ({}));
+                let res = await runConfirm();
 
-            if (!res.ok) {
-                const isAuthError =
-                    res.status === 401 ||
-                    /Missing auth|Invalid or expired token/i.test(String(data?.message || ""));
-
-                if (isAuthError) {
+                if (res.status === 401) {
+                    console.warn("[Spoynt][client] confirm returned 401, attempting refresh...");
                     const refreshRes = await fetch("/api/auth/refresh", {
                         method: "POST",
                         credentials: "include",
+                        cache: "no-store",
                     });
                     if (refreshRes.ok) {
-                        res = await run();
-                        data = await res.json().catch(() => ({}));
+                        res = await runConfirm();
                     }
                 }
-            }
 
-            return res.ok;
-        };
+                const text = await res.text();
+                const data = text ? JSON.parse(text) as ConfirmResponse : {};
 
-        const applyTokens = async () => {
-            setState("loading");
-            setMsg("Crediting your tokens...");
-            setCreditedTokens(tokensToCredit);
+                console.log("[Spoynt][client] confirm response", {
+                    attempt,
+                    httpStatus: res.status,
+                    response: data,
+                });
 
-            try {
-                if (pendingEmail) {
-                    await fetch("/api/sandbox-credit", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ email: pendingEmail, amount: tokensToCredit }),
-                    });
-                } else {
-                    await tryBuyTokens();
+                if (!res.ok) {
+                    if (!cancelled) {
+                        setState("error");
+                        setMsg(data?.message || "Payment confirmation failed.");
+                    }
+                    return;
                 }
-            } catch {
-                // Ignore errors; always show success.
-            }
 
-            if (cancelled) return;
-            setState("ok");
-            setMsg("Payment confirmed. Tokens credited.");
-            localStorage.removeItem("pendingPurchase");
+                if (data.payment) {
+                    setPaymentSnapshot(data.payment);
+                    if (data.payment.referenceId) setReferenceId(data.payment.referenceId);
+                }
+
+                if (data.status === "credited") {
+                    if (cancelled) return;
+                    setState("ok");
+                    setCreditedTokens(Number(data.tokens || pendingPurchase.tokens || 0));
+                    setMsg("Payment confirmed by Spoynt. Tokens credited successfully.");
+                    localStorage.removeItem("pendingPurchase");
+                    localStorage.removeItem("spoyntForced");
+                    return;
+                }
+
+                if ((data.status === "pending" || data.status === "processing") && attempt < MAX_CONFIRM_ATTEMPTS) {
+                    timeoutId = setTimeout(() => {
+                        void confirmOnce(attempt + 1);
+                    }, CONFIRM_RETRY_MS);
+                    return;
+                }
+
+                if (data.status === "pending" || data.status === "processing") {
+                    if (!cancelled) {
+                        setState("pending");
+                        setMsg("Spoynt is still processing the payment. Please refresh this page in a moment.");
+                    }
+                    return;
+                }
+
+                if (!cancelled) {
+                    setState("error");
+                    setMsg(data?.message || "Payment was not confirmed.");
+                }
+            } catch (error) {
+                console.error("[Spoynt][client] confirm error", error);
+                if (!cancelled) {
+                    setState("error");
+                    setMsg(error instanceof Error ? error.message : "Unexpected confirmation error.");
+                }
+            }
         };
 
-        applyTokens();
+        void confirmOnce(1);
 
         return () => {
             cancelled = true;
+            if (timeoutId) clearTimeout(timeoutId);
         };
-    }, [pendingPurchase]);
+    }, [cpiFromQuery, pendingPurchase]);
 
     const formattedPendingDate = useMemo(() => {
         if (!pendingPurchase) return "—";
@@ -162,14 +238,14 @@ export default function PaymentSuccessPage() {
                 <div className={styles.header}>
                     <div>
                         <h1 className={styles.title}>Payment status</h1>
-                        <p className={styles.subtitle}>We are syncing your tokens and order.</p>
+                        <p className={styles.subtitle}>We are confirming your payment with Spoynt and checking the 3DS result.</p>
                     </div>
                     <span className={`${styles.badge} ${badgeClass}`}>
-                        {state === "ok" ? "Confirmed" : "Loading"}
+                        {state === "ok" ? "Confirmed" : state === "pending" ? "Pending" : state === "error" ? "Error" : "Loading"}
                     </span>
                 </div>
 
-                <p className={styles.message}>{msg || "Crediting your tokens..."}</p>
+                <p className={styles.message}>{msg}</p>
 
                 <div className={styles.detailsGrid}>
                     <div className={styles.detailItem}>
@@ -180,7 +256,7 @@ export default function PaymentSuccessPage() {
                     </div>
                     <div className={styles.detailItem}>
                         <span>Reference</span>
-                        <span className={styles.detailValue}>{referenceId || "—"}</span>
+                        <span className={styles.detailValue}>{referenceId || pendingPurchase?.referenceId || "—"}</span>
                     </div>
                     <div className={styles.detailItem}>
                         <span>Credited tokens</span>
@@ -191,6 +267,26 @@ export default function PaymentSuccessPage() {
                     <div className={styles.detailItem}>
                         <span>Selected at</span>
                         <span className={styles.detailValue}>{formattedPendingDate}</span>
+                    </div>
+                    <div className={styles.detailItem}>
+                        <span>Invoice currency</span>
+                        <span className={styles.detailValue}>{paymentSnapshot?.invoiceCurrency || pendingPurchase?.currency || "—"}</span>
+                    </div>
+                    <div className={styles.detailItem}>
+                        <span>Invoice amount</span>
+                        <span className={styles.detailValue}>
+                            {paymentSnapshot?.invoiceAmount ?? pendingPurchase?.amount ?? "—"}
+                        </span>
+                    </div>
+                    <div className={styles.detailItem}>
+                        <span>Requested currency</span>
+                        <span className={styles.detailValue}>{paymentSnapshot?.uiCurrency || pendingPurchase?.uiCurrency || "—"}</span>
+                    </div>
+                    <div className={styles.detailItem}>
+                        <span>Requested amount</span>
+                        <span className={styles.detailValue}>
+                            {paymentSnapshot?.uiAmount ?? pendingPurchase?.uiAmount ?? "—"}
+                        </span>
                     </div>
                 </div>
 
@@ -203,7 +299,8 @@ export default function PaymentSuccessPage() {
                     </a>
                 </div>
 
-                <p className={styles.meta}>Reference: {referenceId || "—"}</p>
+                <p className={styles.meta}>CPI: {cpiFromQuery || pendingPurchase?.cpi || "—"}</p>
+                <p className={styles.meta}>Reference: {referenceId || pendingPurchase?.referenceId || "—"}</p>
             </section>
         </main>
     );

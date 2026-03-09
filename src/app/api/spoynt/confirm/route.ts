@@ -40,7 +40,22 @@ export async function GET(req: NextRequest) {
                     const user = await userController.buyTokens(payload.sub, Math.floor(creditTokens));
                     await spoyntPaymentService.markCredited(cpi);
 
-                    return NextResponse.json({ status: "credited", tokens: Math.floor(creditTokens), user, forced: true });
+                    return NextResponse.json({
+                        status: "credited",
+                        tokens: Math.floor(creditTokens),
+                        user,
+                        forced: true,
+                        payment: {
+                            cpi,
+                            referenceId: creditLock.referenceId,
+                            invoiceCurrency: creditLock.currency,
+                            invoiceAmount: creditLock.amount,
+                            uiCurrency: creditLock.uiCurrency,
+                            uiAmount: creditLock.uiAmount,
+                            status: creditLock.status,
+                            resolution: creditLock.resolution,
+                        },
+                    });
                 } catch (err) {
                     await spoyntPaymentService.releaseCreditLock(cpi);
                     throw err;
@@ -49,10 +64,24 @@ export async function GET(req: NextRequest) {
 
             const existing = await spoyntPaymentService.getByCpi(cpi);
             if (existing?.credited) {
-                return NextResponse.json({ status: "credited", tokens: existing.tokens, forced: true });
+                return NextResponse.json({
+                    status: "credited",
+                    tokens: existing.tokens,
+                    forced: true,
+                    payment: {
+                        cpi,
+                        referenceId: existing.referenceId,
+                        invoiceCurrency: existing.currency,
+                        invoiceAmount: existing.amount,
+                        uiCurrency: existing.uiCurrency,
+                        uiAmount: existing.uiAmount,
+                        status: existing.status,
+                        resolution: existing.resolution,
+                    },
+                });
             }
 
-            return NextResponse.json({ status: "processing" });
+            return NextResponse.json({ status: "processing", payment: { cpi } });
         }
 
         const SPOYNT_BASE_URL = assertEnv("SPOYNT_BASE_URL");
@@ -72,12 +101,11 @@ export async function GET(req: NextRequest) {
 
         const text = await r.text();
         if (!r.ok) {
-            console.log("[Spoynt] confirm fetch error", { status: r.status, body: text });
+            console.log("[Spoynt] confirm fetch error", { status: r.status, body: text, cpi });
             return NextResponse.json({ message: "Spoynt fetch failed", details: text }, { status: 502 });
         }
 
         const json = JSON.parse(text);
-        console.log("[Spoynt] confirm fetch response", json);
         const attrs = json?.data?.attributes;
 
         const status = attrs?.status;
@@ -86,13 +114,26 @@ export async function GET(req: NextRequest) {
 
         const userId = metadata.user_id;
         const tokens = Number(metadata.tokens);
+        const paymentDebug = {
+            cpi,
+            referenceId: attrs?.reference_id,
+            invoiceCurrency: attrs?.currency,
+            invoiceAmount: Number(attrs?.amount),
+            uiCurrency: metadata.ui_currency,
+            uiAmount: Number(metadata.ui_amount),
+            merchantName: metadata.merchant_name,
+            status,
+            resolution,
+        };
+
+        console.log("[Spoynt] confirm fetch response", paymentDebug);
 
         if (!userId || !Number.isFinite(tokens) || tokens <= 0) {
-            return NextResponse.json({ message: "Invoice metadata missing" }, { status: 400 });
+            return NextResponse.json({ message: "Invoice metadata missing", payment: paymentDebug }, { status: 400 });
         }
 
         if (userId !== payload.sub) {
-            return NextResponse.json({ message: "Not your payment" }, { status: 403 });
+            return NextResponse.json({ message: "Not your payment", payment: paymentDebug }, { status: 403 });
         }
 
         await spoyntPaymentService.markStatusByCpi({
@@ -113,15 +154,15 @@ export async function GET(req: NextRequest) {
             if (!creditLock) {
                 const existing = await spoyntPaymentService.getByCpi(cpi);
                 if (existing?.credited) {
-                    return NextResponse.json({ status: "credited", tokens: Math.floor(tokens) });
+                    return NextResponse.json({ status: "credited", tokens: Math.floor(tokens), payment: paymentDebug });
                 }
-                return NextResponse.json({ status: "processing" });
+                return NextResponse.json({ status: "processing", payment: paymentDebug });
             }
 
             try {
                 const user = await userController.buyTokens(payload.sub, Math.floor(tokens));
                 await spoyntPaymentService.markCredited(cpi);
-                return NextResponse.json({ status: "credited", tokens: Math.floor(tokens), user });
+                return NextResponse.json({ status: "credited", tokens: Math.floor(tokens), user, payment: paymentDebug });
             } catch (err) {
                 await spoyntPaymentService.releaseCreditLock(cpi);
                 throw err;
@@ -129,11 +170,17 @@ export async function GET(req: NextRequest) {
         }
 
         if (status === "pending" || status === "created") {
-            return NextResponse.json({ status: "pending" });
+            return NextResponse.json({ status: "pending", payment: paymentDebug });
         }
 
-        return NextResponse.json({ status: "failed", message: "Payment not confirmed", spoynt: { status, resolution } });
+        return NextResponse.json({
+            status: "failed",
+            message: "Payment not confirmed",
+            spoynt: { status, resolution },
+            payment: paymentDebug,
+        });
     } catch (err: any) {
+        console.error("[Spoynt] confirm route error", err);
         return NextResponse.json({ message: err?.message || "Unknown error" }, { status: 400 });
     }
 }

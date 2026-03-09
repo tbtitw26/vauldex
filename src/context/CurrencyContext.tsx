@@ -1,8 +1,12 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
-
-export type Currency = "GBP" | "EUR" | "USD" | "AUD" | "CAD" | "NZD" | "NOK";
+import {
+    CURRENCY_SIGNS,
+    Currency,
+    DEFAULT_PAYMENT_CURRENCY,
+    CURRENCY_PER_GBP,
+} from "@/resources/currencies";
 
 interface CurrencyContextType {
     currency: Currency;
@@ -13,30 +17,8 @@ interface CurrencyContextType {
     convertToGBP: (val: number) => number;
 }
 
-// 💱 Символи валют
-const CURRENCY_SIGNS: Record<Currency, string> = {
-    GBP: "£",
-    EUR: "€",
-    USD: "$",
-    AUD: "A$",
-    CAD: "C$",
-    NZD: "NZ$",
-    NOK: "kr",
-};
-
-// 💹 Курси: 1 GBP = X currency (підстав свої точні)
-const RATES: Record<Currency, number> = {
-    GBP: 1,
-    EUR: 1.17,
-    USD: 1.29,
-    AUD: 1.93,
-    CAD: 1.72,
-    NZD: 2.07,
-    NOK: 13.6,
-};
-
 const CurrencyContext = createContext<CurrencyContextType>({
-    currency: "GBP",
+    currency: DEFAULT_PAYMENT_CURRENCY,
     setCurrency: () => {},
     sign: "£",
     rateToGBP: 1,
@@ -47,9 +29,9 @@ const CurrencyContext = createContext<CurrencyContextType>({
 export const useCurrency = () => useContext(CurrencyContext);
 
 export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
-    const [currency, setCurrency] = useState<Currency>("GBP");
+    const [currency, setCurrency] = useState<Currency>(DEFAULT_PAYMENT_CURRENCY);
 
-    const rateToGBP = RATES[currency];
+    const rateToGBP = CURRENCY_PER_GBP[currency];
     const sign = CURRENCY_SIGNS[currency];
 
     return (

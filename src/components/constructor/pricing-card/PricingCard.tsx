@@ -8,9 +8,7 @@ import { useAlert } from "@/context/AlertContext";
 import { useUser } from "@/context/UserContext";
 import Input from "@mui/joy/Input";
 import { useCurrency } from "@/context/CurrencyContext";
-
-const TOKENS_PER_GBP = 100;
-const MIN_AMOUNT = 10;
+import { Currency, getMinimumAmountForCurrency, MIN_GBP_AMOUNT, TOKENS_PER_GBP } from "@/resources/currencies";
 
 interface PricingCardProps {
     variant?: "starter" | "pro" | "premium" | "custom";
@@ -24,6 +22,22 @@ interface PricingCardProps {
     badgeBottom?: string;
     index?: number;
 }
+
+type CreateInvoiceBody = { currency: Currency; amount: number };
+
+type CreateInvoiceResponse = {
+    cpi?: string;
+    referenceId?: string;
+    tokens?: number;
+    amount?: number;
+    currency?: string;
+    uiCurrency?: string;
+    uiAmount?: number;
+    service?: string;
+    redirectUrl?: string;
+    forced?: boolean;
+    fallbackToGBP?: boolean;
+};
 
 const PricingCard: React.FC<PricingCardProps> = ({
                                                      variant = "starter",
@@ -41,14 +55,17 @@ const PricingCard: React.FC<PricingCardProps> = ({
     const user = useUser();
     const { currency, sign, convertFromGBP, convertToGBP } = useCurrency();
 
-    const [customAmountInput, setCustomAmountInput] = useState<string>(String(MIN_AMOUNT));
+    const [customAmountInput, setCustomAmountInput] = useState<string>(String(MIN_GBP_AMOUNT));
     const isCustom = price === "dynamic";
 
-    const minAmountInCurrency = useMemo(() => MIN_AMOUNT, []);
+    const minAmountInCurrency = useMemo(
+        () => getMinimumAmountForCurrency(currency),
+        [currency]
+    );
 
     useEffect(() => {
         if (!isCustom) return;
-        setCustomAmountInput(String(minAmountInCurrency));
+        setCustomAmountInput(minAmountInCurrency.toFixed(2));
     }, [isCustom, minAmountInCurrency]);
 
     const parsedCustomAmount = useMemo(() => {
@@ -61,14 +78,12 @@ const PricingCard: React.FC<PricingCardProps> = ({
         return Math.max(minAmountInCurrency, parsedCustomAmount);
     }, [parsedCustomAmount, minAmountInCurrency]);
 
-    // 💷 Базова ціна у GBP
     const basePriceGBP = useMemo(() => {
         if (isCustom) return 0;
         const num = parseFloat(price.replace(/[^0-9.]/g, ""));
         return isNaN(num) ? 0 : num;
     }, [price, isCustom]);
 
-    // 💰 Конвертація у поточну валюту
     const convertedPrice = useMemo(() => {
         if (isCustom) return 0;
         return convertFromGBP(basePriceGBP);
@@ -84,13 +99,15 @@ const PricingCard: React.FC<PricingCardProps> = ({
         try {
             const endpoint = "/api/spoynt/create-invoice";
 
-            let body: any;
+            let body: CreateInvoiceBody;
+            let expectedTokens: number;
+            let selectedUiAmount: number;
 
             if (isCustom) {
                 if (!Number.isFinite(parsedCustomAmount)) {
                     showAlert(
-                        `Minimum is ${MIN_AMOUNT} ${currency}`,
-                        `Enter at least ${MIN_AMOUNT.toFixed(2)} ${currency}`,
+                        `Minimum is ${minAmountInCurrency.toFixed(2)} ${currency}`,
+                        `Enter at least ${minAmountInCurrency.toFixed(2)} ${currency}`,
                         "warning"
                     );
                     return;
@@ -98,20 +115,31 @@ const PricingCard: React.FC<PricingCardProps> = ({
 
                 if (clampedCustomAmount < minAmountInCurrency) {
                     showAlert(
-                        `Minimum is ${MIN_AMOUNT} ${currency}`,
-                        `Enter at least ${MIN_AMOUNT.toFixed(2)} ${currency}`,
+                        `Minimum is ${minAmountInCurrency.toFixed(2)} ${currency}`,
+                        `Enter at least ${minAmountInCurrency.toFixed(2)} ${currency}`,
                         "warning"
                     );
                     return;
                 }
 
-                body = { currency, amount: Number(clampedCustomAmount.toFixed(2)) };
+                selectedUiAmount = Number(clampedCustomAmount.toFixed(2));
+                body = { currency, amount: selectedUiAmount };
+                expectedTokens = Math.floor(convertToGBP(clampedCustomAmount) * TOKENS_PER_GBP);
             } else {
-                // Always send at least 10 GBP (or equivalent) for starter/pro/premium
-                let gbpAmount = basePriceGBP;
-                if (gbpAmount < MIN_AMOUNT) gbpAmount = MIN_AMOUNT;
-                body = { currency: "GBP", amount: gbpAmount };
+                selectedUiAmount = Math.max(minAmountInCurrency, Number(convertedPrice.toFixed(2)));
+                body = { currency, amount: selectedUiAmount };
+                expectedTokens = tokens;
             }
+
+            console.log("[Spoynt][client] create-invoice request", {
+                plan: title,
+                variant,
+                requestBody: body,
+                expectedTokens,
+                basePriceGBP,
+                displayedCurrency: currency,
+                displayedAmount: selectedUiAmount,
+            });
 
             const res = await fetch(endpoint, {
                 method: "POST",
@@ -121,33 +149,56 @@ const PricingCard: React.FC<PricingCardProps> = ({
             });
 
             const text = await res.text();
-            if (!res.ok) throw new Error(text);
+            const data = text ? JSON.parse(text) as CreateInvoiceResponse & { message?: string; details?: string } : {};
 
-            const data = JSON.parse(text);
+            console.log("[Spoynt][client] create-invoice response", {
+                httpStatus: res.status,
+                response: data,
+            });
 
-            localStorage.setItem("spoyntLastCpi", data?.cpi || "");
-            localStorage.setItem("spoyntForced", String(!!data?.forced));
+            if (!res.ok || !data.redirectUrl || !data.cpi) {
+                showAlert("Error", data?.message || text || "Something went wrong", "error");
+                return;
+            }
+
+            localStorage.setItem("spoyntLastCpi", data.cpi || "");
+            localStorage.setItem("spoyntForced", String(!!data.forced));
 
             const purchaseIntent = {
-                tokens: isCustom
-                    ? Math.floor(convertToGBP(clampedCustomAmount) * TOKENS_PER_GBP)
-                    : tokens,
+                cpi: data.cpi,
+                referenceId: data.referenceId || "",
+                tokens: Number(data.tokens || expectedTokens),
                 createdAt: Date.now(),
+                currency: data.currency || "GBP",
+                amount: Number(data.amount || convertToGBP(selectedUiAmount)),
+                uiCurrency: data.uiCurrency || currency,
+                uiAmount: Number(data.uiAmount || selectedUiAmount),
+                service: data.service || "",
+                fallbackToGBP: Boolean(data.fallbackToGBP),
             };
 
             localStorage.setItem("pendingPurchase", JSON.stringify(purchaseIntent));
             localStorage.setItem("spoyntLastTokens", String(purchaseIntent.tokens));
-            if (user?.email) {
-                localStorage.setItem("pendingPurchaseEmail", user.email);
-            }
+            localStorage.setItem("spoyntOrderRef", purchaseIntent.referenceId || "");
+
+            console.log("[Spoynt][client] redirecting to HPP/3DS", {
+                cpi: purchaseIntent.cpi,
+                referenceId: purchaseIntent.referenceId,
+                invoiceCurrency: purchaseIntent.currency,
+                invoiceAmount: purchaseIntent.amount,
+                uiCurrency: purchaseIntent.uiCurrency,
+                uiAmount: purchaseIntent.uiAmount,
+                fallbackToGBP: purchaseIntent.fallbackToGBP,
+                redirectUrl: data.redirectUrl,
+            });
 
             window.location.href = data.redirectUrl;
         } catch (err: any) {
+            console.error("[Spoynt][client] create-invoice error", err);
             showAlert("Error", err.message || "Something went wrong", "error");
         }
     };
 
-    // 🔢 Розрахунок токенів для dynamic input
     const tokensCalculated = useMemo(() => {
         const gbpEquivalent = convertToGBP(clampedCustomAmount);
         return Math.floor(gbpEquivalent * TOKENS_PER_GBP);

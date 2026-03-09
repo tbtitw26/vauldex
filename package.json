@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "check:spoynt-currencies": "node scripts/check-spoynt-currencies.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

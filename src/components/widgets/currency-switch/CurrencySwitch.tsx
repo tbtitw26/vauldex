@@ -4,16 +4,14 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useCurrency } from "@/context/CurrencyContext";
 import styles from "./CurrencySwitch.module.scss";
 import { IoMdArrowDropdown } from "react-icons/io";
+import { DISPLAY_CURRENCIES } from "@/resources/currencies";
 
 const CurrencySwitch: React.FC = () => {
     const { currency, setCurrency } = useCurrency();
     const [open, setOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    const currencies = useMemo(
-        () => ["GBP", "EUR", "USD", "AUD", "CAD", "NZD", "NOK"] as const,
-        []
-    );
+    const currencies = useMemo(() => DISPLAY_CURRENCIES, []);
 
     const handleSelect = (val: (typeof currencies)[number]) => {
         setCurrency(val);
