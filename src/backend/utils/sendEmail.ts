@@ -14,18 +14,21 @@ export async function sendEmail(
         return null;
     }
 
-    const response = await resend.emails.send({
-        from: ENV.EMAIL_FROM_NAME
-            ? `${ENV.EMAIL_FROM_NAME} <${ENV.EMAIL_FROM}>`
-            : ENV.EMAIL_FROM,
-        to,
-        subject,
-        text: text || "",
-        html: html || defaultTemplate(subject, text),
-    });
+    try {
+        const response = await resend.emails.send({
+            from: ENV.EMAIL_FROM,
+            to,
+            subject,
+            text: text || "",
+            html: html || defaultTemplate(subject, text),
+        });
 
-    console.log("✅ Email sent via Resend:", response);
-    return response;
+        console.log("✅ Email sent via Resend:", response);
+        return response;
+    } catch (error) {
+        console.error("❌ Resend email failed:", error);
+        throw error;
+    }
 }
 
 function defaultTemplate(title: string, message: string) {
