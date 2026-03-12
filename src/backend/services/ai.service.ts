@@ -58,7 +58,7 @@ export const aiService = {
             response: polishedText.trim(),
         });
 
-        void mailService.sendOrderConfirmationEmail({
+        await mailService.sendOrderConfirmationEmail({
             email: user.email,
             firstName: user.firstName,
             orderId: String(order._id),

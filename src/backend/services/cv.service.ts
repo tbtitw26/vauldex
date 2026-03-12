@@ -211,7 +211,7 @@ export const cvService = {
         const order = orderDoc.toObject() as CVOrderType;
         log("createOrder", "✅ Completed", { id: order._id, extrasKeys: Object.keys(extrasData) });
 
-        void mailService.sendOrderConfirmationEmail({
+        await mailService.sendOrderConfirmationEmail({
             email: user.email,
             firstName: user.firstName,
             orderId: String(order._id),

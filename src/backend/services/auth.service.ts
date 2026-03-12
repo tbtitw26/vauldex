@@ -33,7 +33,7 @@ export const authService = {
             birthDate: new Date(`${normalized.birthDate}T00:00:00.000Z`),
         });
         const result = await this.issueTokensAndSession(user._id, user.email, user.role, undefined, undefined);
-        void mailService.sendRegistrationThankYouEmail({
+        await mailService.sendRegistrationThankYouEmail({
             email: user.email,
             firstName: user.firstName,
         });
