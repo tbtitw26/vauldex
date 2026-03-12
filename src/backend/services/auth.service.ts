@@ -5,7 +5,8 @@ import { sha256, randomToken } from "../utils/crypto";
 import { signAccessToken, signRefreshToken } from "../utils/jwt";
 import { ENV } from "../config/env";
 import { Types } from "mongoose";
-import {sendEmail} from "@/backend/utils/sendEmail";
+import { mailService } from "./mail.service";
+import { assertValidRegistration, RegistrationPayload } from "../../shared/registration";
 
 function parseDurationToSec(input: string): number {
     const m = input.match(/^(\d+)([smhd])?$/i);
@@ -19,18 +20,23 @@ function parseDurationToSec(input: string): number {
 const REFRESH_TTL_SEC = parseDurationToSec(ENV.REFRESH_TOKEN_EXPIRES);
 
 export const authService = {
-    async register(data: { name: string; email: string; password: string }) {
-        const existing = await User.findOne({ email: data.email.toLowerCase() });
+    async register(data: RegistrationPayload) {
+        const normalized = assertValidRegistration(data);
+        const existing = await User.findOne({ email: normalized.email });
         if (existing) throw new Error("Email already registered");
 
-        const hashed = await bcrypt.hash(data.password, 12);
-        const user = await User.create({ ...data, email: data.email.toLowerCase(), password: hashed });
+        const hashed = await bcrypt.hash(normalized.password, 12);
+        const user = await User.create({
+            ...normalized,
+            name: `${normalized.firstName} ${normalized.lastName}`.trim(),
+            password: hashed,
+            birthDate: new Date(`${normalized.birthDate}T00:00:00.000Z`),
+        });
         const result = await this.issueTokensAndSession(user._id, user.email, user.role, undefined, undefined);
-        await sendEmail(
-            user.email,
-            "Welcome to CVMaker 🎉",
-            `Hi ${user.name}, thanks for registering at CVMaker.`
-        );
+        void mailService.sendRegistrationThankYouEmail({
+            email: user.email,
+            firstName: user.firstName,
+        });
 
         return { user, ...result };
     },

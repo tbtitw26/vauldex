@@ -7,16 +7,12 @@ import {
     signUpValidation,
     signUpInitialValues,
     signUpOnSubmit,
+    signUpCountryOptions,
 } from "@/validationSchemas/sign-up/schema";
 import FormUI from "@/components/ui/form/FormUI";
+import { RegistrationFormValues } from "@/shared/registration";
 
-// ✅ типи з урахуванням terms
-export type SignUpValues = {
-    name: string;
-    email: string;
-    password: string;
-    terms: boolean;
-};
+export type SignUpValues = RegistrationFormValues;
 
 export default function SignUpPage() {
     const { showAlert } = useAlert();
@@ -37,9 +33,21 @@ export default function SignUpPage() {
                     description="Create your account"
                     isSubmitting={isSubmitting}
                     fields={[
-                        { name: "name", type: "text", placeholder: "Name" },
+                        { name: "firstName", type: "text", placeholder: "First name" },
+                        { name: "lastName", type: "text", placeholder: "Last name" },
                         { name: "email", type: "email", placeholder: "Email" },
                         { name: "password", type: "password", placeholder: "Password" },
+                        { name: "phone", type: "text", placeholder: "Phone" },
+                        { name: "addressStreet", type: "text", placeholder: "Street address" },
+                        { name: "addressCity", type: "text", placeholder: "City" },
+                        {
+                            name: "addressCountry",
+                            type: "select",
+                            placeholder: "Select country",
+                            options: signUpCountryOptions,
+                        },
+                        { name: "addressPostalCode", type: "text", placeholder: "Postal code" },
+                        { name: "birthDate", type: "date", placeholder: "Birth date" },
                     ]}
                     submitLabel="Sign Up"
                     showTerms

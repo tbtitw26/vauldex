@@ -7,8 +7,9 @@ import ButtonUI from "@/components/ui/button/ButtonUI";
 
 interface FieldConfig {
     name: string;
-    type: string;
+    type: React.HTMLInputTypeAttribute | "select";
     placeholder?: string;
+    options?: Array<{ value: string; label: string }>;
 }
 
 interface FormUIProps {

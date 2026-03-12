@@ -6,6 +6,10 @@ export function env(name: string, fallback?: string): string {
     return value;
 }
 
+export function envOptional(name: string, fallback = ""): string {
+    return process.env[name] ?? fallback;
+}
+
 export const ENV = {
     MONGODB_URI: env("MONGODB_URI"),
     JWT_ACCESS_SECRET: env("JWT_ACCESS_SECRET"),
@@ -21,8 +25,15 @@ export const ENV = {
     SMTP_HOST: env("SMTP_HOST", "smtp.tech-text.co.uk"),
     SMTP_PORT: env("SMTP_PORT", "465"),
     SMTP_SECURE: env("SMTP_SECURE", "true") === "true",
-    SMTP_USER: env("SMTP_USER", ""),
-    SMTP_PASS: env("SMTP_PASS", ""),
-    EMAIL_FROM: env("EMAIL_FROM", ""),
-    RESEND_API: env("RESEND_API", ""),
+    SMTP_USER: envOptional("SMTP_USER"),
+    SMTP_PASS: envOptional("SMTP_PASS"),
+    EMAIL_FROM: envOptional("EMAIL_FROM"),
+    EMAIL_FROM_NAME: envOptional("EMAIL_FROM_NAME", process.env.NEXT_PUBLIC_COMPANY_NAME || "Support"),
+    RESEND_API: envOptional("RESEND_API"),
+    SUPPORT_EMAIL: envOptional("SUPPORT_EMAIL", process.env.NEXT_PUBLIC_COMPANY_EMAIL || process.env.EMAIL_FROM || ""),
+    COMPANY_NAME: env("COMPANY_NAME", process.env.NEXT_PUBLIC_COMPANY_NAME || "Company"),
+    COMPANY_ADDRESS: envOptional("COMPANY_ADDRESS", process.env.NEXT_PUBLIC_COMPANY_ADDRESS || ""),
+    COMPANY_PHONE: envOptional("COMPANY_PHONE", process.env.NEXT_PUBLIC_COMPANY_PHONE || ""),
+    WEBSITE_NAME: env("WEBSITE_NAME", process.env.NEXT_PUBLIC_COMPANY_NAME || "App"),
+    WEBSITE_URL: env("WEBSITE_URL", process.env.APP_URL || "http://localhost:3000"),
 };

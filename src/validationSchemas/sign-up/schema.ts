@@ -1,33 +1,34 @@
 import { AlertColor } from "@mui/material/Alert";
+import {
+    COUNTRY_OPTIONS,
+    RegistrationFormValues,
+    validateRegistration,
+} from "@/shared/registration";
 
-export const signUpInitialValues = {
-    name: "",
+export const signUpInitialValues: RegistrationFormValues = {
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
-    terms: false, // ✅ нове поле
+    phone: "",
+    addressStreet: "",
+    addressCity: "",
+    addressCountry: "",
+    addressPostalCode: "",
+    birthDate: "",
+    terms: false,
 };
 
-type SignUpErrors = {
-    name?: string;
-    email?: string;
-    password?: string;
-    terms?: string;
-};
+export const signUpCountryOptions = COUNTRY_OPTIONS.map((country) => ({
+    value: country.code,
+    label: country.label,
+}));
 
-export const signUpValidation = (values: typeof signUpInitialValues) => {
-    const errors: SignUpErrors = {};
-
-    if (!values.name) errors.name = "Required";
-    if (!values.email) errors.email = "Required";
-    if (!values.password) errors.password = "Required";
-    if (!values.terms)
-        errors.terms = "You must agree to the Terms and Conditions";
-
-    return errors;
-};
+export const signUpValidation = (values: RegistrationFormValues) =>
+    validateRegistration(values, { requireTerms: true });
 
 export const signUpOnSubmit = async (
-    values: typeof signUpInitialValues,
+    values: RegistrationFormValues,
     { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void },
     showAlert: (msg: string, desc?: string, severity?: AlertColor) => void,
     router: { replace: (url: string) => void; refresh: () => void }
@@ -45,7 +46,10 @@ export const signUpOnSubmit = async (
             router.replace("/");
             router.refresh();
         } else {
-            showAlert(data?.message || "Registration failed", "", "error");
+            const fieldError = data?.errors
+                ? (Object.values(data.errors)[0] as string | undefined)
+                : undefined;
+            showAlert(fieldError || data?.message || "Registration failed", "", "error");
         }
     } catch (e: any) {
         showAlert(e?.message || "Network error", "", "error");

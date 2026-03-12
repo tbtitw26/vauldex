@@ -7,6 +7,7 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
+    "test": "node --test --experimental-strip-types tests/**/*.test.ts",
     "check:spoynt-currencies": "node scripts/check-spoynt-currencies.mjs"
   },
   "dependencies": {

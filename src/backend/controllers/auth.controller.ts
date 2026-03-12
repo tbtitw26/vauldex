@@ -1,12 +1,11 @@
 import { connectDB } from "../config/db";
 import { authService } from "../services/auth.service";
-import { User } from "../models/user.model";
-import { AuthResponse, AuthError, LogoutResponse } from "@/backend/types/auth.types";
+import { LogoutResponse } from "@/backend/types/auth.types";
 import { UserType } from "@/backend/types/user.types";
-import { signAccessToken } from "../utils/jwt";
+import { RegistrationPayload } from "@/shared/registration";
 
 export const authController = {
-    async register(body: { name: string; email: string; password: string }) {
+    async register(body: RegistrationPayload) {
         await connectDB();
         const { user, accessToken, refreshToken } = await authService.register(body);
         return { user: toUser(user), tokens: { accessToken, refreshToken } };
@@ -47,7 +46,15 @@ function toUser(u: any): UserType {
     return {
         _id: u._id.toString(),
         name: u.name,
+        firstName: u.firstName,
+        lastName: u.lastName,
         email: u.email,
+        phone: u.phone,
+        addressStreet: u.addressStreet,
+        addressCity: u.addressCity,
+        addressCountry: u.addressCountry,
+        addressPostalCode: u.addressPostalCode,
+        birthDate: u.birthDate,
         role: u.role,
         tokens: u.tokens,
         createdAt: u.createdAt,

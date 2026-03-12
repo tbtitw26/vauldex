@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authController } from "@/backend/controllers/auth.controller";
 import { attachAuthCookies } from "@/backend/utils/cookies";
+import { RegistrationValidationError } from "@/shared/registration";
 
 export async function POST(req: NextRequest) {
     try {
@@ -11,7 +12,14 @@ export async function POST(req: NextRequest) {
         return res;
     } catch (e: any) {
         const msg = e?.message || "Registration error";
+        if (e instanceof RegistrationValidationError) {
+            return NextResponse.json(
+                { type: "ValidationError", message: msg, errors: e.fields },
+                { status: 400 }
+            );
+        }
         const code = msg.includes("registered") ? 400 : 500;
-        return NextResponse.json({ type: "EmailAlreadyRegistered", message: msg }, { status: code });
+        const type = msg.includes("registered") ? "EmailAlreadyRegistered" : "RegistrationError";
+        return NextResponse.json({ type, message: msg }, { status: code });
     }
 }

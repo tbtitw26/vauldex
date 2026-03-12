@@ -1,7 +1,7 @@
 import { Resend } from "resend";
-import { ENV } from "@/backend/config/env";
+import { ENV } from "../config/env";
 
-const resend = new Resend(ENV.RESEND_API);
+const resend = ENV.RESEND_API ? new Resend(ENV.RESEND_API) : null;
 
 export async function sendEmail(
     to: string,
@@ -9,21 +9,23 @@ export async function sendEmail(
     text: string,
     html?: string
 ) {
-    try {
-        const response = await resend.emails.send({
-            from: ENV.EMAIL_FROM,
-            to,
-            subject,
-            text: text || "",
-            html: html || defaultTemplate(subject, text),
-        });
-
-        console.log("✅ Email sent via Resend:", response);
-        return response;
-    } catch (error) {
-        console.error("❌ Resend email failed:", error);
-        throw error;
+    if (!resend || !ENV.EMAIL_FROM) {
+        console.warn("Email transport is not configured. Skipping email.", { to, subject });
+        return null;
     }
+
+    const response = await resend.emails.send({
+        from: ENV.EMAIL_FROM_NAME
+            ? `${ENV.EMAIL_FROM_NAME} <${ENV.EMAIL_FROM}>`
+            : ENV.EMAIL_FROM,
+        to,
+        subject,
+        text: text || "",
+        html: html || defaultTemplate(subject, text),
+    });
+
+    console.log("✅ Email sent via Resend:", response);
+    return response;
 }
 
 function defaultTemplate(title: string, message: string) {
@@ -35,14 +37,14 @@ function defaultTemplate(title: string, message: string) {
           ${message}
         </p>
         <div style="text-align:center; margin:30px 0;">
-          <a href="${ENV.APP_URL}/dashboard" 
+          <a href="${ENV.WEBSITE_URL}/dashboard" 
              style="background:#007BFF; color:#fff; text-decoration:none; padding:12px 24px; border-radius:6px; font-weight:bold;">
              Go to Dashboard
           </a>
         </div>
         <hr style="margin:20px 0; border:none; border-top:1px solid #eee;" />
         <p style="font-size:14px; color:#777; text-align:center;">
-          © ${new Date().getFullYear()} CVMaker – All rights reserved.
+          © ${new Date().getFullYear()} ${ENV.COMPANY_NAME}. All rights reserved.
         </p>
       </div>
     </div>
