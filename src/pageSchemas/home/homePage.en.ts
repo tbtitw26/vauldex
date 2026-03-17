@@ -4,7 +4,7 @@ import {COMPANY_NAME} from "@/resources/constants";
 const schema: PageSchema = {
     meta: {
         title: `${COMPANY_NAME} — Instant CVs or Expert Review`,
-        description: `${COMPANY_NAME} instantly creates ATS-ready CVs or provides a polished expert-reviewed version within 24 hours.`,
+        description: `${COMPANY_NAME} instantly creates ATS-ready CVs or provides a polished reviewed version within 24 hours.`,
         keywords: [
             "cv maker", "resume builder", "ATS resume", "instant cv",
             "professional resume", "cv review", "career success",
@@ -29,8 +29,8 @@ const schema: PageSchema = {
             component: "HeroSection",
             title: "Two Ways to Build Your Career",
             highlight: "Instant CV or Expert Review",
-            description: `Create an ATS-optimized CV instantly or get a polished, HR-reviewed version in 24 hours.`,
-            primaryCta: {text: "Create My CV Now", link: "/get-started"},
+            description: `Create an ATS-optimized CV instantly or get a polished reviewed version in 24 hours.`,
+            primaryCta: {text: "Create My CV Now", link: "/dashboard"},
             secondaryCta: {text: "See Templates", link: "/templates"},
             image: "image1",
         },
@@ -39,10 +39,10 @@ const schema: PageSchema = {
             type: "custom",
             component: "Marquee",
             items: [
-                {text: "Trusted by HR managers worldwide"},
-                {text: "8,500+ CVs generated"},
-                {text: "Users from 15 countries"},
-                {text: "10+ years of HR experience"},
+                {text: "Used by professionals"},
+                {text: "Helping users create CVs"},
+                {text: "Used internationally"},
+                {text: "Built with modern HR best practices"},
             ],
         },
 
@@ -53,9 +53,9 @@ const schema: PageSchema = {
             description: `${COMPANY_NAME} blends AI speed with human expertise.`,
             values: [
                 {icon: "⚡", title: "Instant CV", text: "Generate a professional CV in seconds."},
-                {icon: "🕒", title: "24h Review", text: "HR specialists refine your CV."},
+                {icon: "🕒", title: "24h Review", text: "Optional review helps refine your CV."},
                 {icon: "📑", title: "ATS Compliance", text: "Optimized to pass filters."},
-                {icon: "🎨", title: "Modern Templates", text: "Beautiful, recruiter-friendly designs."}
+                {icon: "🎨", title: "Modern Templates", text: "Beautiful, professional designs."}
             ]
         },
 
@@ -69,12 +69,12 @@ const schema: PageSchema = {
             left: {
                 type: "text",
                 title: "Your CV, Reinvented for Modern Hiring",
-                description: "We combine AI-driven structure with real HR expertise to significantly increase your chances of landing interviews.",
+                description: "We combine AI-driven structure with practical review support to help you present your experience clearly.",
                 bullets: [
                     "AI-enhanced keyword optimization",
-                    "HR-approved formatting & structure",
+                    "Clear, professional formatting & structure",
                     "Cleaner, more professional writing",
-                    "Built to pass ATS filters"
+                    "Designed for ATS-friendly formatting"
                 ],
             },
             right: {
@@ -103,7 +103,7 @@ const schema: PageSchema = {
                 type: "text",
                 title: "We Combine Technology With Human Expertise",
                 description:
-                    `Instant CV generation is powered by AI — but the polish comes from real HR professionals.\n\nEvery reviewed CV is analyzed by recruiters who understand industry expectations and modern hiring standards.`,
+                    `Instant CV generation is powered by AI, with optional review support for additional refinement.\n\nReviewed CVs are polished with attention to clarity, structure, and current hiring expectations.`,
                 bullets: [
                     "Tailored recommendations",
                     "Grammar and clarity improvements",
@@ -122,7 +122,7 @@ const schema: PageSchema = {
             steps: [
                 {title: "Fill in your details", description: "Work experience, education, and skills."},
                 {title: "Instant CV", description: "Get your ATS-ready document immediately."},
-                {title: "Optional Review", description: "HR expert refines your CV."},
+                {title: "Optional Review", description: "Additional review helps refine your CV."},
                 {title: "Ready in 24h", description: "Receive a polished version in your inbox."},
             ],
         },
@@ -146,29 +146,29 @@ const schema: PageSchema = {
             component: "StoryTimeline",
             steps: [
                 {
-                    year: "2021",
+                    year: "Sep 2025",
                     title: "Launch",
                     description: "Began as a simple CV generator for quick resume creation."
                 },
                 {
-                    year: "2022",
+                    year: "Late 2025",
                     title: "AI Engine Added",
-                    description: "Introduced intelligent keyword optimization for ATS systems."
+                    description: "Introduced AI-assisted drafting and CV improvements."
                 },
                 {
-                    year: "2023",
-                    title: "HR Team Added",
-                    description: "Experienced HR professionals joined the platform."
+                    year: "Early 2026",
+                    title: "Review Support Added",
+                    description: "Added optional review support for more polished CVs."
                 },
                 {
-                    year: "2024",
-                    title: "10,000+ Users",
-                    description: "Became a trusted tool for job seekers worldwide."
+                    year: "2026",
+                    title: "Product Growth",
+                    description: "Expanded the platform based on user feedback and new use cases."
                 },
                 {
-                    year: "2025",
-                    title: "Global Expansion",
-                    description: "Launching multi-language CV support and worldwide HR network."
+                    year: "Next",
+                    title: "Ongoing Improvements",
+                    description: "Continuing to improve templates, language support, and workflow tools."
                 },
             ],
         },
@@ -184,9 +184,9 @@ const schema: PageSchema = {
             type: "custom",
             component: "TeamGrid",
             title: "Meet Our Team",
-            description: `Behind ${COMPANY_NAME} is a passionate team of HR experts and developers who combine technology with human insight.`,
+            description: `Behind ${COMPANY_NAME} is a team focused on combining technology with practical hiring insight.`,
             members: [
-                { name: "Anna Kowalski", role: "HR Manager", bio: "10+ years in recruitment & career coaching.", image: "team1" },
+                { name: "Anna Kowalski", role: "HR Manager", bio: "Focused on recruitment, CV quality, and career guidance.", image: "team1" },
                 { name: "John Doe", role: "Lead Developer", bio: "Building scalable resume tech solutions.", image: "team2" },
                 { name: "Maria Lopez", role: "Designer", bio: "Crafting clean, professional CV templates.", image: "team3" }
             ]
@@ -241,10 +241,10 @@ const schema: PageSchema = {
                     price: "€99",
                     tokens: 9900,
                     badgeTop: "Recommended",
-                    description: "Full HR support.",
+                    description: "Additional review support.",
                     features: [
                         "Unlimited CVs",
-                        "24h HR review",
+                        "24h review option",
                         "Personalization",
                         "Cover letter builder",
                         "Priority support"
@@ -304,9 +304,9 @@ const schema: PageSchema = {
             items: [
                 {
                     question: "Instant CV vs Expert Review?",
-                    answer: "Instant CV is generated immediately. Expert Review is manually polished by HR experts."
+                    answer: "Instant CV is generated immediately. Expert Review adds manual refinement for structure, wording, and presentation."
                 },
-                {question: "Are templates ATS-friendly?", answer: "Yes. All templates pass ATS filters."},
+                {question: "Are templates ATS-friendly?", answer: "Yes. All templates are designed with ATS-friendly formatting in mind."},
                 {question: "Can I download in PDF?", answer: "Yes — PDF export is included."},
                 {question: "Is my data secure?", answer: "We follow strict GDPR protocols."},
                 {question: "Cover letters included?", answer: "Yes — in Premium plan."},

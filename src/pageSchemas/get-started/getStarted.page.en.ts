@@ -29,7 +29,7 @@ const schema: PageSchema = {
             title: `Get Started with ${COMPANY_NAME}`,
             highlight: "Our Mission & Vision",
             description: `With ${COMPANY_NAME}, you can either generate your CV instantly using our professional templates, 
-    or select the Manager Review option to receive a polished version carefully refined by HR experts within just 24 hours.`,
+    or select the Manager Review option to receive a polished version with additional review support within 24 hours.`,
             image: "image5",
         },
 
@@ -39,10 +39,10 @@ const schema: PageSchema = {
             component: "HighlightStrip",
             messages: [
                 "⚡ Instant CV download",
-                "🎨 50+ professional templates",
-                "👩‍💼 Optional HR review (24h)",
+                "🎨 Professional templates",
+                "👩‍💼 Optional review (24h)",
                 "📑 ATS-optimized resumes",
-                "✅ Trusted by job seekers worldwide",
+                "✅ Built for modern job seekers",
             ],
         },
 
@@ -52,9 +52,9 @@ const schema: PageSchema = {
             component: "ValuesIcons",
             values: [
                 {icon: "⚡", title: "Instant Results", text: "Get your CV right away after filling the form"},
-                {icon: "👩‍💼", title: "Expert Option", text: "Let HR specialists refine your CV in 24h"},
+                {icon: "👩‍💼", title: "Expert Option", text: "Add review support for extra refinement in 24h"},
                 {icon: "📑", title: "ATS-Friendly", text: "Optimized to pass Applicant Tracking Systems"},
-                {icon: "🎨", title: "Modern Templates", text: "Choose sleek, recruiter-approved designs"},
+                {icon: "🎨", title: "Modern Templates", text: "Choose sleek, professional designs"},
             ],
         },
 
@@ -72,7 +72,7 @@ const schema: PageSchema = {
                 {
                     image: "image2",
                     title: "2. Choose a Template",
-                    description: "Select from modern recruiter-approved designs.",
+                    description: "Select from modern, professional designs.",
                 },
                 {
                     image: "image3",
@@ -87,7 +87,7 @@ const schema: PageSchema = {
                 {
                     image: "image5",
                     title: "4b. Manager Review (Optional)",
-                    description: "Our HR experts polish and send your CV within 24h.",
+                    description: "Your CV is refined and sent within 24h.",
                 },
                 {
                     image: "image6",
@@ -105,7 +105,7 @@ const schema: PageSchema = {
                 type: "text",
                 title: "Start Your Career the Right Way",
                 description:
-                    `Sign up today, fill in your details, and either download your CV instantly or let our HR team perfect it within 24 hours.`,
+                    `Sign up today, fill in your details, and either download your CV instantly or choose review support within 24 hours.`,
                 centerTitle: true,
                 centerDescription: true,
             },
@@ -125,11 +125,11 @@ const schema: PageSchema = {
                 },
                 {
                     question: "Do I need design skills?",
-                    answer: "Not at all. Everything is handled automatically, and if you choose review, our HR team polishes the design and content.",
+                    answer: "Not at all. Everything is handled automatically, and if you choose review, your CV receives additional polish in design and content.",
                 },
                 {
                     question: "Is it ATS-friendly?",
-                    answer: "Yes. Both instant and reviewed CVs are recruiter-approved and ATS-optimized.",
+                    answer: "Yes. Both instant and reviewed CVs are designed with ATS-friendly formatting in mind.",
                 },
             ],
         },

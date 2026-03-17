@@ -11,7 +11,7 @@ const faqSchema: PageSchema = {
             "instant cv",
             "ATS resume",
             "career support",
-            "HR experts",
+            "cv review support",
         ],
         canonical: "/faq",
         ogImage: {
@@ -27,7 +27,7 @@ const faqSchema: PageSchema = {
             items: [
                 {
                     question: `What is ${COMPANY_NAME}?`,
-                    answer: `${COMPANY_NAME} is a CV builder that lets you instantly generate an ATS-friendly resume. You can also choose our optional Manager Review service, where HR experts refine your CV and send it within 24 hours.`,
+                    answer: `${COMPANY_NAME} is a CV builder that lets you instantly generate an ATS-friendly resume. You can also choose our optional Manager Review service for additional refinement delivered within 24 hours.`,
                 },
                 {
                     question: "How long does it take to receive my resume?",
@@ -35,7 +35,7 @@ const faqSchema: PageSchema = {
                 },
                 {
                     question: "Who creates the resumes?",
-                    answer: `Instant CVs are generated automatically using our templates. Manager-reviewed CVs are crafted and refined by certified HR specialists and career consultants.`,
+                    answer: `Instant CVs are generated automatically using our templates. Manager-reviewed CVs receive additional manual refinement before delivery.`,
                 },
                 {
                     question: "Can I request revisions?",
@@ -55,7 +55,7 @@ const faqSchema: PageSchema = {
                 },
                 {
                     question: "Can you help if I’m changing careers?",
-                    answer: `Of course. Our HR experts (through the Manager Review option) specialize in highlighting transferable skills for a smooth career transition.`,
+                    answer: `Yes. The Manager Review option can help highlight transferable skills for a career transition.`,
                 },
                 {
                     question: "Do you offer cover letters too?",
@@ -83,7 +83,7 @@ const faqSchema: PageSchema = {
                 },
                 {
                     question: "Do you provide career advice?",
-                    answer: `Yes. Our HR experts can provide personalized career advice as part of the Manager Review service.`,
+                    answer: `Manager Review may include practical suggestions to improve how your experience is presented.`,
                 }
             ],
         },

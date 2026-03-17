@@ -5,7 +5,7 @@ const schema: PageSchema = {
     meta: {
         title: `About Us — ${COMPANY_NAME}`,
         description:
-            `${COMPANY_NAME} combines instant AI-generated resumes with professional HR review. Create your CV instantly or choose the optional expert service for a polished version within 24 hours.`,
+            `${COMPANY_NAME} combines instant AI-generated resumes with optional review support. Create your CV instantly or choose the optional expert service for a polished version within 24 hours.`,
         keywords: [
             `${COMPANY_NAME}`,
             "create resume",
@@ -31,7 +31,7 @@ const schema: PageSchema = {
             title: `About ${COMPANY_NAME}`,
             highlight: "Our Mission & Vision",
             description: `At ${COMPANY_NAME}, we believe that every professional deserves a fair chance to showcase their skills.  
-   Our platform helps you instantly generate ATS-friendly CVs, while our HR experts ensure your application stands out with personalized reviews.`,
+   Our platform helps you instantly generate ATS-friendly CVs, with optional review support for additional polish and clarity.`,
             image: "image2",
         },
 
@@ -50,7 +50,7 @@ const schema: PageSchema = {
                 description: "We provide flexibility: instant results when you need speed, or expert refinement when you want the highest quality.",
                 bullets: [
                     "A tool for instantly creating resumes based on pre-designed templates",
-                    "Optional HR manager review in 24h",
+                    "Optional review support in 24h",
                     "Resumes tailored to your industry",
                 ],
             },
@@ -73,12 +73,12 @@ const schema: PageSchema = {
                         description: "We introduced smart keyword optimization and ATS improvements."
                     },
                     {
-                        title: "HR Team Added",
-                        description: "Experienced HR experts joined to provide personalized CV reviews."
+                        title: "Review Support Added",
+                        description: "We introduced optional review support for more polished CVs."
                     },
                     {
-                        title: "10,000+ Users",
-                        description: "Trusted by job seekers worldwide, across 15+ industries."
+                        title: "Product Growth",
+                        description: "We continue improving the platform based on user needs and feedback."
                     },
                 ],
             },
@@ -93,15 +93,15 @@ Many job seekers lose opportunities not because they lack talent, but because th
 to pass automated filters or attract recruiters' attention.  
 
 To solve this, we combined automation with human expertise — creating a platform that delivers instant, 
-ATS-ready CVs while also offering optional personalized reviews from experienced HR professionals.  
+ATS-ready CVs while also offering optional personalized reviews for users who want additional refinement.  
 
 From day one, our mission has been to empower people from all industries and backgrounds to showcase their strengths 
 and land opportunities they truly deserve.`,
                 bullets: [
-                    "Founded by HR experts with 10+ years of recruitment experience",
+                    "Built with practical hiring and CV best practices",
                     "Built to bridge the gap between AI automation and human expertise",
-                    "Designed to help job seekers worldwide at every stage of their career",
-                    "Trusted by thousands globally across tech, healthcare, finance, and more",
+                    "Designed to support job seekers at different career stages",
+                    "Made for a wide range of roles and industries",
                 ],
             },
         },
@@ -135,9 +135,9 @@ and land opportunities they truly deserve.`,
             component: "ValuesIcons",
             values: [
                 {icon: "⚡", title: "Instant Access", text: "Generate a CV immediately when speed matters most"},
-                {icon: "👩‍💼", title: "Expert Touch", text: "Optional HR manager review with 24h delivery"},
-                {icon: "📑", title: "ATS-Optimized", text: "Every CV is recruiter-friendly and passes ATS scans"},
-                {icon: "🤝", title: "Trust", text: "Thousands of job seekers already rely on us"},
+                {icon: "👩‍💼", title: "Expert Touch", text: "Optional review support with 24h delivery"},
+                {icon: "📑", title: "ATS-Optimized", text: "Designed for compatibility with common ATS formatting needs"},
+                {icon: "🤝", title: "Trust", text: "Built to be clear, useful, and practical"},
             ],
         },
 
@@ -148,7 +148,7 @@ and land opportunities they truly deserve.`,
             left: {
                 type: "text",
                 title: "What Sets Us Apart",
-                description: `Unlike pure automation tools, ${COMPANY_NAME} gives you a choice. Get an AI-generated CV instantly, or opt for a manager-reviewed version that combines automation with human expertise.`,
+                description: `Unlike pure automation tools, ${COMPANY_NAME} gives you a choice. Get an AI-generated CV instantly, or opt for a reviewed version that combines automation with manual refinement.`,
                 centerTitle: true,
                 centerDescription: true,
             },
@@ -159,9 +159,9 @@ and land opportunities they truly deserve.`,
             type: "custom",
             component: "TeamGrid",
             title: "Meet Our Team",
-            description: `Behind ${COMPANY_NAME} is a passionate team of HR experts and developers who combine technology with human insight.`,
+            description: `Behind ${COMPANY_NAME} is a team of people working across product, design, and review support.`,
             members: [
-                { name: "Anna Kowalski", role: "HR Manager", bio: "10+ years in recruitment & career coaching.", image: "team1" },
+                { name: "Anna Kowalski", role: "HR Manager", bio: "Focused on recruitment, CV quality, and career guidance.", image: "team1" },
                 { name: "John Doe", role: "Lead Developer", bio: "Building scalable resume tech solutions.", image: "team2" },
                 { name: "Maria Lopez", role: "Designer", bio: "Crafting clean, professional CV templates.", image: "team3" }
             ]
@@ -174,7 +174,7 @@ and land opportunities they truly deserve.`,
             steps: [
                 { title: "1. Provide Your Details", description: "Fill out the form with your work experience, education, and skills." },
                 { title: "2. Choose Your Option", description: "Download your instant CV — or select manager review for expert refinement." },
-                { title: "3. Expert Processing (Optional)", description: "Our HR consultants review and polish your CV." },
+                { title: "3. Expert Processing (Optional)", description: "Your CV is reviewed and polished for clarity and presentation." },
                 { title: "4. Delivery", description: "Instant download available, or polished PDF sent within 24 hours." },
             ],
         },
@@ -184,7 +184,7 @@ and land opportunities they truly deserve.`,
             type: "faq",
             items: [
                 { question: "How fast can I get my CV?", answer: "You can download your CV instantly. If you choose expert review, it’s ready within 24 hours." },
-                { question: "Is my CV ATS-friendly?", answer: "Yes, all generated CVs are optimized to pass ATS (Applicant Tracking System) scans." },
+                { question: "Is my CV ATS-friendly?", answer: "Yes, generated CVs are designed with ATS-friendly formatting and structure in mind." },
                 { question: "Can I edit my CV after generating it?", answer: "Absolutely. You can edit, update, and regenerate your CV anytime." },
                 { question: "Do you offer refunds?", answer: "Yes, we have a satisfaction guarantee. If you’re not happy, contact support for assistance." }
             ]

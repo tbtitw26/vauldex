@@ -5,17 +5,17 @@ const schema: PageSchema = {
     meta: {
         title: `Pricing — ${COMPANY_NAME}`,
         description:
-            `Choose the right plan for your career journey. ${COMPANY_NAME} offers instant CV generation and optional expert HR review.`,
+            `Choose the right plan for your career journey. ${COMPANY_NAME} offers instant CV generation and optional review support.`,
         keywords: [
             `${COMPANY_NAME} pricing`,
             "resume builder plans",
             "AI CV cost",
-            "expert HR review pricing",
+            "expert review pricing",
         ],
         canonical: "/pricing",
         ogImage: {
             title: `${COMPANY_NAME} Pricing`,
-            description: "Affordable plans for instant CVs or HR-reviewed resumes",
+            description: "Affordable plans for instant CVs or reviewed resumes",
             bg: "#0a2540",
             color: "#ffffff",
         },
@@ -88,10 +88,10 @@ const schema: PageSchema = {
                     price: "€99",
                     tokens: 9900,
                     badgeTop: "Recommended",
-                    description: "Get expert-level CVs and stand out in competitive job markets.",
+                    description: "Get additional review support for a more polished CV.",
                     features: [
                         "Unlimited CVs with all templates",
-                        "1-on-1 HR expert review (24h)",
+                        "1-on-1 review option (24h)",
                         "Advanced personalization & styling",
                         "Cover letter builder included",
                         "Dedicated priority support"
@@ -126,11 +126,11 @@ const schema: PageSchema = {
                 component: "InfoBlock",
                 title: "Why Upgrade?",
                 description:
-                    "An expertly reviewed CV increases your chances of landing interviews by highlighting the right skills and structure recruiters expect.",
+                    "A reviewed CV can help improve clarity, structure, and presentation for your applications.",
                 bullets: [
                     "Instant download in multiple formats",
-                    "Reviewed by HR professionals",
-                    "Guaranteed ATS optimization",
+                    "Optional manual review",
+                    "ATS-friendly formatting",
                 ],
             },
             right: {
@@ -153,7 +153,7 @@ const schema: PageSchema = {
                 {
                     question: "What’s included in the HR review?",
                     answer:
-                        "Our HR experts check your structure, keywords, and formatting to maximize your chances of passing ATS and impressing recruiters.",
+                        "The review focuses on structure, keywords, formatting, and overall clarity to help strengthen your CV.",
                 },
                 {
                     question: "Can I upgrade later?",

@@ -35,8 +35,8 @@ const Page = () => {
 
             <Marquee items={[
                 { text: "🚀 ATS-friendly CVs" },
-                { text: "👩‍💼 Polished by HR experts" },
-                { text: "📑 Templates for every industry" },
+                { text: "👩‍💼 Optional review support" },
+                { text: "📑 Templates for different industries" },
                 { text: "⚡ Instant generation" },
                 { text: "🎨 Modern designs" }
             ]}/>
@@ -47,10 +47,10 @@ const Page = () => {
             {/* InfoBlock */}
             <InfoBlock
                 title="Why Use Our CV Templates?"
-                description="Our CV examples are designed by HR experts to help you stand out. Each template is fully optimized for applicant tracking systems (ATS) and tailored to different industries."
+                description="Our CV examples are designed to help you present your experience clearly. Each template is built with applicant tracking systems (ATS) compatibility in mind and adapted for different industries."
                 bullets={[
-                    "Professional, recruiter-approved layouts",
-                    "100% ATS-optimized formatting",
+                    "Professional, clean layouts",
+                    "ATS-friendly formatting",
                     "Easy to edit and customize",
                 ]}
                 align="center"
