@@ -267,6 +267,7 @@
 .paymentIcon {
   width: 50px;
   height: 50px;
+  object-fit: contain;
   opacity: 0.9;
   transition: all 0.2s ease-in-out;
   color: var(--text-primary);
@@ -277,6 +278,10 @@
     transform: scale(1.1);
     color: var(--secondary-color);
   }
+}
+
+.paymentIconWide {
+  width: 96px;
 }
 
 .footer__inner--corporate {
@@ -445,4 +450,3 @@
     justify-content: center;
   }
 }
-
