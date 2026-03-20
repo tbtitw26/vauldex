@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { userController } from "@/backend/controllers/user.controller";
 import { spoyntPaymentService } from "@/backend/services/spoyntPayment.service";
+import { mailService } from "@/backend/services/mail.service";
 
 function assertEnv(name: string): string {
     const v = process.env[name];
@@ -104,8 +105,45 @@ export async function POST(req: NextRequest) {
             }
 
             try {
-                await userController.buyTokens(userId, Math.floor(tokens));
+                const user = await userController.buyTokens(userId, Math.floor(tokens));
                 await spoyntPaymentService.markCredited(cpi);
+
+                try {
+                    console.info("[Spoynt] payment email attempt", {
+                        cpi,
+                        userId,
+                        email: user.email,
+                        tokens: Math.floor(tokens),
+                        source: "webhook",
+                    });
+                    await mailService.sendPaymentConfirmationEmail({
+                        email: user.email,
+                        firstName: user.firstName,
+                        tokensAdded: Math.floor(tokens),
+                        orderDate: new Date(),
+                        details: [
+                            { label: "Transaction type", value: "Token purchase" },
+                            { label: "Reference ID", value: String(attrs?.reference_id || cpi) },
+                            { label: "Invoice amount", value: `${attrs?.amount ?? "n/a"} ${attrs?.currency ?? ""}`.trim() },
+                            { label: "New balance", value: `${user.tokens} tokens` },
+                            { label: "Confirmation source", value: "Spoynt webhook" },
+                        ],
+                    });
+                    console.info("[Spoynt] payment email success", {
+                        cpi,
+                        userId,
+                        email: user.email,
+                        source: "webhook",
+                    });
+                } catch (error) {
+                    console.error("[Spoynt] payment email failed", {
+                        cpi,
+                        userId,
+                        email: user.email,
+                        source: "webhook",
+                        error: error instanceof Error ? { name: error.name, message: error.message } : String(error),
+                    });
+                }
             } catch (err) {
                 await spoyntPaymentService.releaseCreditLock(cpi);
                 throw err;

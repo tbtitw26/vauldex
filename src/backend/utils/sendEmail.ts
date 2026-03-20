@@ -2,19 +2,20 @@ import { Resend } from "resend";
 import nodemailer from "nodemailer";
 import { ENV } from "../config/env";
 
-const resend = ENV.RESEND_API ? new Resend(ENV.RESEND_API) : null;
-const smtpTransport =
-    ENV.SMTP_HOST && ENV.SMTP_USER && ENV.SMTP_PASS
-        ? nodemailer.createTransport({
-              host: ENV.SMTP_HOST,
-              port: Number(ENV.SMTP_PORT),
-              secure: ENV.SMTP_SECURE,
-              auth: {
-                  user: ENV.SMTP_USER,
-                  pass: ENV.SMTP_PASS,
-              },
-          })
-        : null;
+type EmailProvider = "resend" | "smtp";
+
+type SendEmailOptions = {
+    operation: "registration" | "contact" | "order" | "payment" | "generic";
+};
+
+type MailConfiguration = {
+    provider: EmailProvider;
+    from: string;
+    senderEmail: string;
+    smtpSecure?: boolean;
+};
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function escapeHtml(value: string) {
     return String(value)
@@ -25,73 +26,314 @@ function escapeHtml(value: string) {
         .replace(/'/g, "&#039;");
 }
 
-function buildFromValue() {
-    const fromEmail = ENV.EMAIL_FROM || ENV.SMTP_USER || ENV.SUPPORT_EMAIL;
-
-    if (!fromEmail) {
-        throw new Error("A sender email is not configured");
+function maskError(error: unknown) {
+    if (error instanceof Error) {
+        return {
+            name: error.name,
+            message: error.message,
+        };
     }
 
-    return ENV.EMAIL_FROM_NAME
-        ? `${ENV.EMAIL_FROM_NAME} <${fromEmail}>`
-        : fromEmail;
+    return { message: String(error) };
+}
+
+function normalizeEmailAddress(email: string, fieldName: string) {
+    const normalized = String(email || "").trim().toLowerCase();
+
+    if (!normalized) {
+        throw new MailRecipientError(`${fieldName} is required.`);
+    }
+
+    if (!EMAIL_RE.test(normalized)) {
+        throw new MailRecipientError(`${fieldName} must be a valid email address.`);
+    }
+
+    return normalized;
+}
+
+function normalizeConfiguredEmailAddress(email: string, fieldName: string) {
+    const normalized = String(email || "").trim().toLowerCase();
+
+    if (!normalized) {
+        throw new MailConfigError(`${fieldName} is required.`);
+    }
+
+    if (!EMAIL_RE.test(normalized)) {
+        throw new MailConfigError(`${fieldName} must be a valid email address.`);
+    }
+
+    return normalized;
+}
+
+function sanitizeHeaderValue(value: string) {
+    return String(value || "").replace(/[\r\n]+/g, " ").trim();
+}
+
+function buildFromValue(senderEmail: string) {
+    const senderName = sanitizeHeaderValue(ENV.EMAIL_FROM_NAME);
+
+    return senderName ? `${senderName} <${senderEmail}>` : senderEmail;
+}
+
+function describeMissingVars(vars: string[]) {
+    return vars.join(", ");
+}
+
+function getConfiguredSmtpFields() {
+    const pairs = [
+        ["SMTP_HOST", ENV.SMTP_HOST],
+        ["SMTP_PORT", ENV.SMTP_PORT],
+        ["SMTP_USER", ENV.SMTP_USER],
+        ["SMTP_PASS", ENV.SMTP_PASS],
+    ] as const;
+
+    return {
+        any: pairs.some(([, value]) => Boolean(String(value || "").trim())) || typeof ENV.SMTP_SECURE === "boolean",
+        missing: pairs
+            .filter(([, value]) => !String(value || "").trim())
+            .map(([name]) => name)
+            .concat(typeof ENV.SMTP_SECURE === "boolean" ? [] : ["SMTP_SECURE"]),
+    };
+}
+
+function resolveMailConfiguration(): MailConfiguration {
+    const resendConfigured = Boolean(ENV.RESEND_API.trim());
+    const smtpState = getConfiguredSmtpFields();
+
+    if (resendConfigured) {
+        const senderEmail = normalizeConfiguredEmailAddress(
+            ENV.EMAIL_FROM,
+            "EMAIL_FROM for Resend"
+        );
+
+        return {
+            provider: "resend",
+            from: buildFromValue(senderEmail),
+            senderEmail,
+        };
+    }
+
+    if (smtpState.any) {
+        if (smtpState.missing.length > 0) {
+            throw new MailConfigError(
+                `SMTP fallback is partially configured. Missing: ${describeMissingVars(smtpState.missing)}.`
+            );
+        }
+
+        const senderEmail = normalizeConfiguredEmailAddress(
+            ENV.EMAIL_FROM || ENV.SMTP_USER,
+            ENV.EMAIL_FROM ? "EMAIL_FROM" : "SMTP_USER"
+        );
+
+        return {
+            provider: "smtp",
+            from: buildFromValue(senderEmail),
+            senderEmail,
+            smtpSecure: ENV.SMTP_SECURE,
+        };
+    }
+
+    throw new MailConfigError(
+        "No email transport is configured. Set RESEND_API and EMAIL_FROM for Resend, or SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_SECURE, and EMAIL_FROM/SMTP_USER for SMTP."
+    );
+}
+
+function getResendClient() {
+    if (!ENV.RESEND_API.trim()) return null;
+    return new Resend(ENV.RESEND_API);
+}
+
+function getSmtpTransport() {
+    const smtpConfig = resolveMailConfiguration();
+    if (smtpConfig.provider !== "smtp") return null;
+
+    return nodemailer.createTransport({
+        host: ENV.SMTP_HOST,
+        port: Number(ENV.SMTP_PORT),
+        secure: smtpConfig.smtpSecure,
+        auth: {
+            user: ENV.SMTP_USER,
+            pass: ENV.SMTP_PASS,
+        },
+    });
+}
+
+export class MailConfigError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "MailConfigError";
+    }
+}
+
+export class MailRecipientError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "MailRecipientError";
+    }
+}
+
+export class MailDeliveryError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "MailDeliveryError";
+    }
+}
+
+export function getMailDiagnostics() {
+    try {
+        const config = resolveMailConfiguration();
+
+        return {
+            ok: true,
+            provider: config.provider,
+            senderEmail: config.senderEmail,
+            resendConfigured: Boolean(ENV.RESEND_API.trim()),
+            smtpConfigured: getConfiguredSmtpFields().missing.length === 0,
+            contactRecipient: ENV.CONTACT_RECEIVER_EMAIL || ENV.SUPPORT_EMAIL || "",
+        };
+    } catch (error) {
+        return {
+            ok: false,
+            error: error instanceof Error ? error.message : String(error),
+            resendConfigured: Boolean(ENV.RESEND_API.trim()),
+            smtpConfigured: getConfiguredSmtpFields().missing.length === 0,
+            contactRecipient: ENV.CONTACT_RECEIVER_EMAIL || ENV.SUPPORT_EMAIL || "",
+        };
+    }
+}
+
+export function validateMailConfigurationForOperation(
+    operation: SendEmailOptions["operation"]
+) {
+    const diagnostics = getMailDiagnostics();
+
+    if (!diagnostics.ok) {
+        throw new MailConfigError(`[mail:${operation}] ${diagnostics.error}`);
+    }
+
+    return diagnostics;
 }
 
 export async function sendEmail(
     to: string,
     subject: string,
     text: string,
-    html?: string
+    html?: string,
+    options: SendEmailOptions = { operation: "generic" }
 ) {
-    const finalHtml = html || defaultTemplate(subject, text);
+    const mailConfig = resolveMailConfiguration();
+    const resend = mailConfig.provider === "resend" ? getResendClient() : null;
+    const smtpTransport = mailConfig.provider === "smtp" ? getSmtpTransport() : null;
+    const recipient = normalizeEmailAddress(to, "Recipient email");
+    const normalizedSubject = sanitizeHeaderValue(subject) || "Notification";
+    const finalText = typeof text === "string" ? text : "";
+    const finalHtml = html || defaultTemplate(normalizedSubject, finalText);
 
-    if (resend) {
+    console.info("[mail] send attempt", {
+        operation: options.operation,
+        provider: mailConfig.provider,
+        from: mailConfig.senderEmail,
+        to: recipient,
+        subject: normalizedSubject,
+    });
+
+    if (mailConfig.provider === "resend" && resend) {
         try {
             const response = await resend.emails.send({
-                from: buildFromValue(),
-                to,
-                subject,
-                text: text || "",
+                from: mailConfig.from,
+                to: recipient,
+                subject: normalizedSubject,
+                text: finalText,
                 html: finalHtml,
             });
 
-            console.log("✅ Email sent via Resend:", response);
-
             if ((response as any)?.error) {
-                console.error("❌ Resend returned error:", (response as any).error);
-                throw new Error(
+                const providerError =
                     typeof (response as any).error === "string"
                         ? (response as any).error
-                        : JSON.stringify((response as any).error)
+                        : JSON.stringify((response as any).error);
+
+                console.error("[mail] delivery failed", {
+                    operation: options.operation,
+                    provider: mailConfig.provider,
+                    from: mailConfig.senderEmail,
+                    to: recipient,
+                    subject: normalizedSubject,
+                    error: providerError,
+                });
+
+                throw new MailDeliveryError(
+                    `Resend rejected the email. Check EMAIL_FROM/domain verification and provider logs. Provider error: ${providerError}`
                 );
             }
 
+            console.info("[mail] send success", {
+                operation: options.operation,
+                provider: mailConfig.provider,
+                from: mailConfig.senderEmail,
+                to: recipient,
+                subject: normalizedSubject,
+                id: (response as any)?.data?.id || (response as any)?.id || null,
+            });
+
             return response;
         } catch (error) {
-            console.error("❌ Resend email failed:", error);
-            throw error;
+            if (error instanceof MailDeliveryError) throw error;
+
+            console.error("[mail] delivery failed", {
+                operation: options.operation,
+                provider: mailConfig.provider,
+                from: mailConfig.senderEmail,
+                to: recipient,
+                subject: normalizedSubject,
+                error: maskError(error),
+            });
+
+            throw new MailDeliveryError(
+                `Resend delivery failed. Check RESEND_API, EMAIL_FROM/domain verification, and provider logs. ${error instanceof Error ? error.message : String(error)}`
+            );
         }
     }
 
-    if (smtpTransport) {
+    if (mailConfig.provider === "smtp" && smtpTransport) {
         try {
             const response = await smtpTransport.sendMail({
-                from: buildFromValue(),
-                to,
-                subject,
-                text: text || "",
+                from: mailConfig.from,
+                to: recipient,
+                subject: normalizedSubject,
+                text: finalText,
                 html: finalHtml,
             });
 
-            console.log("✅ Email sent via SMTP:", response.messageId);
+            console.info("[mail] send success", {
+                operation: options.operation,
+                provider: mailConfig.provider,
+                from: mailConfig.senderEmail,
+                to: recipient,
+                subject: normalizedSubject,
+                messageId: response.messageId,
+                accepted: response.accepted,
+                rejected: response.rejected,
+            });
+
             return response;
         } catch (error) {
-            console.error("❌ SMTP email failed:", error);
-            throw error;
+            console.error("[mail] delivery failed", {
+                operation: options.operation,
+                provider: mailConfig.provider,
+                from: mailConfig.senderEmail,
+                to: recipient,
+                subject: normalizedSubject,
+                error: maskError(error),
+            });
+
+            throw new MailDeliveryError(
+                `SMTP delivery failed. Check SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_SECURE, EMAIL_FROM, and provider/server logs. ${error instanceof Error ? error.message : String(error)}`
+            );
         }
     }
 
-    throw new Error("No email transport is configured");
+    throw new MailConfigError("Resolved mail provider could not be initialized.");
 }
 
 function defaultTemplate(title: string, message: string) {
@@ -116,7 +358,7 @@ function defaultTemplate(title: string, message: string) {
         <hr style="margin:20px 0; border:none; border-top:1px solid #eee;" />
 
         <p style="font-size:14px; color:#777; text-align:center; margin:0;">
-          © ${new Date().getFullYear()} ${escapeHtml(ENV.COMPANY_NAME)} – All rights reserved.
+          © ${new Date().getFullYear()} ${escapeHtml(ENV.COMPANY_NAME)} - All rights reserved.
         </p>
       </div>
     </div>

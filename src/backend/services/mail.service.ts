@@ -162,16 +162,22 @@ ${detailLines}`.trim(),
 export const mailService = {
     async sendRegistrationThankYouEmail(params: { email: string; firstName?: string }) {
         const template = buildRegistrationThankYouEmail(params);
-        return sendEmail(params.email, template.subject, template.text, template.html);
+        return sendEmail(params.email, template.subject, template.text, template.html, {
+            operation: "registration",
+        });
     },
 
     async sendOrderConfirmationEmail(params: OrderConfirmationParams) {
         const template = buildOrderConfirmationEmail(params);
-        return sendEmail(params.email, template.subject, template.text, template.html);
+        return sendEmail(params.email, template.subject, template.text, template.html, {
+            operation: "order",
+        });
     },
 
     async sendPaymentConfirmationEmail(params: PaymentConfirmationParams) {
         const template = buildPaymentConfirmationEmail(params);
-        return sendEmail(params.email, template.subject, template.text, template.html);
+        return sendEmail(params.email, template.subject, template.text, template.html, {
+            operation: "payment",
+        });
     },
 };

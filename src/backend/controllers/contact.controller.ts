@@ -1,4 +1,5 @@
-import { contactService } from "../services/contact.service";
+import { contactService, ContactValidationError } from "../services/contact.service";
+import { MailConfigError, MailDeliveryError, MailRecipientError } from "../utils/sendEmail";
 
 export const contactController = {
     async send(req: Request) {
@@ -15,14 +16,30 @@ export const contactController = {
                 }
             );
         } catch (error) {
-            console.error("Contact request error:", error);
+            const message = error instanceof Error ? error.message : "Internal server error";
+            const status =
+                error instanceof SyntaxError
+                    ? 400
+                    : error instanceof ContactValidationError
+                    ? 400
+                    : error instanceof MailConfigError || error instanceof MailRecipientError
+                        ? 500
+                        : error instanceof MailDeliveryError
+                            ? 502
+                            : 500;
+
+            console.error("[contact] request failed", {
+                status,
+                error:
+                    error instanceof Error
+                        ? { name: error.name, message: error.message }
+                        : String(error),
+            });
 
             return new Response(
-                JSON.stringify({
-                    message: error instanceof Error ? error.message : "Internal server error",
-                }),
+                JSON.stringify({ message }),
                 {
-                    status: 500,
+                    status,
                     headers: { "Content-Type": "application/json" },
                 }
             );

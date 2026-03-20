@@ -53,15 +53,23 @@ export const authService = {
         );
 
         try {
+            console.info("[authService.register] registration email attempt", {
+                userId: user._id?.toString?.(),
+                email: user.email,
+            });
             await mailService.sendRegistrationThankYouEmail({
                 email: user.email,
                 firstName: user.firstName,
+            });
+            console.info("[authService.register] registration email success", {
+                userId: user._id?.toString?.(),
+                email: user.email,
             });
         } catch (error) {
             console.error("[authService.register] registration email failed", {
                 email: user.email,
                 userId: user._id?.toString?.(),
-                error,
+                error: error instanceof Error ? { name: error.name, message: error.message } : String(error),
             });
         }
 

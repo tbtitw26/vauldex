@@ -2,7 +2,6 @@ import { connectDB } from "../config/db";
 import { userService } from "../services/user.service";
 import { UserType } from "@/backend/types/user.types";
 import { transactionService } from "@/backend/services/transaction.service";
-import { mailService } from "@/backend/services/mail.service";
 
 export const userController = {
     async buyTokens(userId: string, amount: number): Promise<UserType> {
@@ -13,26 +12,6 @@ export const userController = {
         console.log("💳 Adding tokens for user:", userId);
         await transactionService.record(user._id, user.email, amount, "add", user.tokens);
         console.log("✅ Transaction created successfully");
-
-        try {
-            await mailService.sendPaymentConfirmationEmail({
-                email: user.email,
-                firstName: user.firstName,
-                tokensAdded: amount,
-                orderDate: new Date(),
-                details: [
-                    { label: "Transaction type", value: "Token purchase" },
-                    { label: "New balance", value: `${user.tokens} tokens` },
-                ],
-            });
-        } catch (error) {
-            console.error("[userController.buyTokens] payment confirmation email failed", {
-                userId,
-                email: user.email,
-                amount,
-                error,
-            });
-        }
 
         return formatUser(user);
     },

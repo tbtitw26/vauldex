@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/backend/middlewares/auth.middleware";
 import { userController } from "@/backend/controllers/user.controller";
 import { spoyntPaymentService } from "@/backend/services/spoyntPayment.service";
+import { mailService } from "@/backend/services/mail.service";
 
 function assertEnv(name: string): string {
     const v = process.env[name];
@@ -16,6 +17,54 @@ function basicAuthHeader(username: string, password: string) {
 
 function isForceSuccessEnabled() {
     return process.env.SPOYNT_FORCE_SUCCESS === "true" && process.env.NODE_ENV !== "production";
+}
+
+async function sendPaymentConfirmationEmail(params: {
+    cpi: string;
+    user: { email: string; firstName?: string; tokens?: number };
+    tokensAdded: number;
+    referenceId?: string;
+    amount?: number;
+    currency?: string;
+    source: string;
+}) {
+    try {
+        console.info("[Spoynt] payment email attempt", {
+            cpi: params.cpi,
+            email: params.user.email,
+            tokens: params.tokensAdded,
+            source: params.source,
+        });
+
+        await mailService.sendPaymentConfirmationEmail({
+            email: params.user.email,
+            firstName: params.user.firstName,
+            tokensAdded: params.tokensAdded,
+            orderDate: new Date(),
+            details: [
+                { label: "Transaction type", value: "Token purchase" },
+                { label: "Reference ID", value: String(params.referenceId || params.cpi) },
+                { label: "Invoice amount", value: `${params.amount ?? "n/a"} ${params.currency ?? ""}`.trim() },
+                { label: "New balance", value: `${params.user.tokens ?? "n/a"} tokens` },
+                { label: "Confirmation source", value: params.source },
+            ],
+        });
+
+        console.info("[Spoynt] payment email success", {
+            cpi: params.cpi,
+            email: params.user.email,
+            tokens: params.tokensAdded,
+            source: params.source,
+        });
+    } catch (error) {
+        console.error("[Spoynt] payment email failed", {
+            cpi: params.cpi,
+            email: params.user.email,
+            tokens: params.tokensAdded,
+            source: params.source,
+            error: error instanceof Error ? { name: error.name, message: error.message } : String(error),
+        });
+    }
 }
 
 export async function GET(req: NextRequest) {
@@ -39,6 +88,15 @@ export async function GET(req: NextRequest) {
 
                     const user = await userController.buyTokens(payload.sub, Math.floor(creditTokens));
                     await spoyntPaymentService.markCredited(cpi);
+                    await sendPaymentConfirmationEmail({
+                        cpi,
+                        user,
+                        tokensAdded: Math.floor(creditTokens),
+                        referenceId: creditLock.referenceId,
+                        amount: creditLock.amount,
+                        currency: creditLock.currency,
+                        source: "Spoynt confirm (forced)",
+                    });
 
                     return NextResponse.json({
                         status: "credited",
@@ -162,6 +220,15 @@ export async function GET(req: NextRequest) {
             try {
                 const user = await userController.buyTokens(payload.sub, Math.floor(tokens));
                 await spoyntPaymentService.markCredited(cpi);
+                await sendPaymentConfirmationEmail({
+                    cpi,
+                    user,
+                    tokensAdded: Math.floor(tokens),
+                    referenceId: attrs?.reference_id,
+                    amount: Number(attrs?.amount),
+                    currency: attrs?.currency,
+                    source: "Spoynt confirm",
+                });
                 return NextResponse.json({ status: "credited", tokens: Math.floor(tokens), user, payment: paymentDebug });
             } catch (err) {
                 await spoyntPaymentService.releaseCreditLock(cpi);
