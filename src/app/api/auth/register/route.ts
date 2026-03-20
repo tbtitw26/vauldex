@@ -11,15 +11,38 @@ export async function POST(req: NextRequest) {
         attachAuthCookies(res, tokens.accessToken, tokens.refreshToken, 60 * 60 * 24 * 30);
         return res;
     } catch (e: any) {
+        console.error("[api/auth/register] Registration failed", e);
         const msg = e?.message || "Registration error";
-        if (e instanceof RegistrationValidationError) {
+        const isRegistrationValidationError =
+            e instanceof RegistrationValidationError ||
+            e?.name === "RegistrationValidationError" ||
+            (e?.fields && typeof e.fields === "object");
+
+        if (isRegistrationValidationError) {
             return NextResponse.json(
-                { type: "ValidationError", message: msg, errors: e.fields },
+                { type: "ValidationError", message: msg, errors: e.fields ?? {} },
                 { status: 400 }
             );
         }
-        const code = msg.includes("registered") ? 400 : 500;
-        const type = msg.includes("registered") ? "EmailAlreadyRegistered" : "RegistrationError";
+
+        if (e?.name === "ValidationError" && e?.errors) {
+            const errors = Object.fromEntries(
+                Object.entries(e.errors).map(([key, value]: [string, any]) => [
+                    key,
+                    value?.message || "Invalid value",
+                ])
+            );
+
+            return NextResponse.json(
+                { type: "ValidationError", message: msg, errors },
+                { status: 400 }
+            );
+        }
+
+        const isDuplicateEmail =
+            msg.includes("registered") || e?.code === 11000 || /duplicate key/i.test(msg);
+        const code = isDuplicateEmail ? 400 : 500;
+        const type = isDuplicateEmail ? "EmailAlreadyRegistered" : "RegistrationError";
         return NextResponse.json({ type, message: msg }, { status: code });
     }
 }

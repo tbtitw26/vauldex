@@ -19,11 +19,24 @@ type FormikInputProps = Omit<InputProps, "type"> & {
 const errorStyle: React.CSSProperties = { color: "red", fontSize: 12 };
 const selectStyle: React.CSSProperties = {
     width: "100%",
-    minHeight: 44,
-    padding: "10px 12px",
+    minHeight: 40,
+    padding: "0.625rem 2.5rem 0.625rem 0.75rem",
     borderRadius: 8,
-    border: "1px solid rgba(0, 0, 0, 0.23)",
+    border: "1px solid var(--joy-palette-neutral-outlinedBorder, rgba(0, 0, 0, 0.23))",
     background: "#fff",
+    fontSize: "1rem",
+    lineHeight: 1.5,
+    appearance: "none",
+    WebkitAppearance: "none",
+    MozAppearance: "none",
+    backgroundImage:
+        "linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%)",
+    backgroundPosition: "calc(100% - 18px) calc(50% - 3px), calc(100% - 12px) calc(50% - 3px)",
+    backgroundSize: "6px 6px, 6px 6px",
+    backgroundRepeat: "no-repeat",
+    transition: "border-color 0.2s ease, box-shadow 0.2s ease",
+    outline: "none",
+    boxSizing: "border-box",
 };
 
 const InputUI: React.FC<FormikInputProps> = ({ formik, options, type, ...props }) => {
@@ -41,6 +54,7 @@ const InputUI: React.FC<FormikInputProps> = ({ formik, options, type, ...props }
                             ...selectStyle,
                             border: hasError ? "1px solid #d32f2f" : selectStyle.border,
                             color: field.value ? "#111827" : "#6b7280",
+                            boxShadow: hasError ? "0 0 0 1px #d32f2f inset" : "none",
                         }}
                     >
                         <option value="">{props.placeholder || "Select an option"}</option>

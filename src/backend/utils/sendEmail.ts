@@ -1,7 +1,20 @@
 import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import { ENV } from "../config/env";
 
 const resend = ENV.RESEND_API ? new Resend(ENV.RESEND_API) : null;
+const smtpTransport =
+    ENV.SMTP_HOST && ENV.SMTP_USER && ENV.SMTP_PASS
+        ? nodemailer.createTransport({
+              host: ENV.SMTP_HOST,
+              port: Number(ENV.SMTP_PORT),
+              secure: ENV.SMTP_SECURE,
+              auth: {
+                  user: ENV.SMTP_USER,
+                  pass: ENV.SMTP_PASS,
+              },
+          })
+        : null;
 
 function escapeHtml(value: string) {
     return String(value)
@@ -13,13 +26,15 @@ function escapeHtml(value: string) {
 }
 
 function buildFromValue() {
-    if (!ENV.EMAIL_FROM) {
-        throw new Error("EMAIL_FROM is not configured");
+    const fromEmail = ENV.EMAIL_FROM || ENV.SMTP_USER || ENV.SUPPORT_EMAIL;
+
+    if (!fromEmail) {
+        throw new Error("A sender email is not configured");
     }
 
     return ENV.EMAIL_FROM_NAME
-        ? `${ENV.EMAIL_FROM_NAME} <${ENV.EMAIL_FROM}>`
-        : ENV.EMAIL_FROM;
+        ? `${ENV.EMAIL_FROM_NAME} <${fromEmail}>`
+        : fromEmail;
 }
 
 export async function sendEmail(
@@ -28,43 +43,55 @@ export async function sendEmail(
     text: string,
     html?: string
 ) {
-    if (!ENV.RESEND_API) {
-        throw new Error("RESEND_API is not configured");
-    }
+    const finalHtml = html || defaultTemplate(subject, text);
 
-    if (!ENV.EMAIL_FROM) {
-        throw new Error("EMAIL_FROM is not configured");
-    }
+    if (resend) {
+        try {
+            const response = await resend.emails.send({
+                from: buildFromValue(),
+                to,
+                subject,
+                text: text || "",
+                html: finalHtml,
+            });
 
-    if (!resend) {
-        throw new Error("Resend client was not initialized");
-    }
+            console.log("✅ Email sent via Resend:", response);
 
-    try {
-        const response = await resend.emails.send({
-            from: buildFromValue(),
-            to,
-            subject,
-            text: text || "",
-            html: html || defaultTemplate(subject, text),
-        });
+            if ((response as any)?.error) {
+                console.error("❌ Resend returned error:", (response as any).error);
+                throw new Error(
+                    typeof (response as any).error === "string"
+                        ? (response as any).error
+                        : JSON.stringify((response as any).error)
+                );
+            }
 
-        console.log("✅ Email sent via Resend:", response);
-
-        if ((response as any)?.error) {
-            console.error("❌ Resend returned error:", (response as any).error);
-            throw new Error(
-                typeof (response as any).error === "string"
-                    ? (response as any).error
-                    : JSON.stringify((response as any).error)
-            );
+            return response;
+        } catch (error) {
+            console.error("❌ Resend email failed:", error);
+            throw error;
         }
-
-        return response;
-    } catch (error) {
-        console.error("❌ Resend email failed:", error);
-        throw error;
     }
+
+    if (smtpTransport) {
+        try {
+            const response = await smtpTransport.sendMail({
+                from: buildFromValue(),
+                to,
+                subject,
+                text: text || "",
+                html: finalHtml,
+            });
+
+            console.log("✅ Email sent via SMTP:", response.messageId);
+            return response;
+        } catch (error) {
+            console.error("❌ SMTP email failed:", error);
+            throw error;
+        }
+    }
+
+    throw new Error("No email transport is configured");
 }
 
 function defaultTemplate(title: string, message: string) {

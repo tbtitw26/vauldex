@@ -5,8 +5,8 @@ import { sha256, randomToken } from "../utils/crypto";
 import { signAccessToken, signRefreshToken } from "../utils/jwt";
 import { ENV } from "../config/env";
 import { Types } from "mongoose";
-import { mailService } from "./mail.service";
-import {assertValidRegistration, RegistrationPayload} from "@/shared/registration";
+import { assertValidRegistration, RegistrationPayload } from "@/shared/registration";
+import { mailService } from "@/backend/services/mail.service";
 
 function parseDurationToSec(input: string): number {
     const m = input.match(/^(\d+)([smhd])?$/i);
@@ -34,8 +34,14 @@ export const authService = {
         const user = await User.create({
             ...normalized,
             name: `${normalized.firstName} ${normalized.lastName}`.trim(),
+            phone: normalized.phoneNumber,
+            addressStreet: normalized.street,
+            addressCity: normalized.city,
+            addressCountry: normalized.country,
+            addressPostalCode: normalized.postCode,
             password: hashed,
-            birthDate: new Date(`${normalized.birthDate}T00:00:00.000Z`),
+            dateOfBirth: new Date(`${normalized.dateOfBirth}T00:00:00.000Z`),
+            birthDate: new Date(`${normalized.dateOfBirth}T00:00:00.000Z`),
         });
 
         const result = await this.issueTokensAndSession(
@@ -52,7 +58,11 @@ export const authService = {
                 firstName: user.firstName,
             });
         } catch (error) {
-            console.error("❌ Registration thank-you email failed:", error);
+            console.error("[authService.register] registration email failed", {
+                email: user.email,
+                userId: user._id?.toString?.(),
+                error,
+            });
         }
 
         return { user, ...result };

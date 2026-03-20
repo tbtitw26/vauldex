@@ -43,18 +43,31 @@ export const authController = {
 };
 
 function toUser(u: any): UserType {
+    const phoneNumber = u.phoneNumber ?? u.phone ?? "";
+    const street = u.street ?? u.addressStreet ?? "";
+    const city = u.city ?? u.addressCity ?? "";
+    const country = u.country ?? u.addressCountry ?? "";
+    const postCode = u.postCode ?? u.addressPostalCode ?? "";
+    const dateOfBirth = u.dateOfBirth ?? u.birthDate ?? null;
+
     return {
         _id: u._id.toString(),
         name: u.name,
         firstName: u.firstName,
         lastName: u.lastName,
         email: u.email,
-        phone: u.phone,
-        addressStreet: u.addressStreet,
-        addressCity: u.addressCity,
-        addressCountry: u.addressCountry,
-        addressPostalCode: u.addressPostalCode,
-        birthDate: u.birthDate,
+        phoneNumber,
+        dateOfBirth,
+        street,
+        city,
+        country,
+        postCode,
+        phone: phoneNumber,
+        addressStreet: street,
+        addressCity: city,
+        addressCountry: country,
+        addressPostalCode: postCode,
+        birthDate: dateOfBirth,
         role: u.role,
         tokens: u.tokens,
         createdAt: u.createdAt,

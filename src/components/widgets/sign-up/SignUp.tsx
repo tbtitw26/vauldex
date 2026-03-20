@@ -35,19 +35,24 @@ export default function SignUpPage() {
                     fields={[
                         { name: "firstName", type: "text", placeholder: "First name" },
                         { name: "lastName", type: "text", placeholder: "Last name" },
+                        { name: "dateOfBirth", type: "date", placeholder: "Date of birth" },
                         { name: "email", type: "email", placeholder: "Email" },
+                        { name: "phoneNumber", type: "text", placeholder: "Phone number" },
+                        { name: "street", type: "text", placeholder: "Street" },
+                        { name: "city", type: "text", placeholder: "City" },
                         { name: "password", type: "password", placeholder: "Password" },
-                        { name: "phone", type: "text", placeholder: "Phone" },
-                        { name: "addressStreet", type: "text", placeholder: "Street address" },
-                        { name: "addressCity", type: "text", placeholder: "City" },
                         {
-                            name: "addressCountry",
+                            name: "confirmPassword",
+                            type: "password",
+                            placeholder: "Confirm password",
+                        },
+                        {
+                            name: "country",
                             type: "select",
-                            placeholder: "Select country",
+                            placeholder: "Select your country",
                             options: signUpCountryOptions,
                         },
-                        { name: "addressPostalCode", type: "text", placeholder: "Postal code" },
-                        { name: "birthDate", type: "date", placeholder: "Birth date" },
+                        { name: "postCode", type: "text", placeholder: "Post code" },
                     ]}
                     submitLabel="Sign Up"
                     showTerms

@@ -1,8 +1,8 @@
 import { connectDB } from "../config/db";
 import { userService } from "../services/user.service";
 import { UserType } from "@/backend/types/user.types";
-import { sendEmail } from "@/backend/utils/sendEmail";
 import { transactionService } from "@/backend/services/transaction.service";
+import { mailService } from "@/backend/services/mail.service";
 
 export const userController = {
     async buyTokens(userId: string, amount: number): Promise<UserType> {
@@ -14,11 +14,25 @@ export const userController = {
         await transactionService.record(user._id, user.email, amount, "add", user.tokens);
         console.log("✅ Transaction created successfully");
 
-        sendEmail(
-            user.email,
-            "Tokens Purchased",
-            `You have successfully purchased ${amount} tokens. Your new balance is ${user.tokens} tokens.`
-        );
+        try {
+            await mailService.sendPaymentConfirmationEmail({
+                email: user.email,
+                firstName: user.firstName,
+                tokensAdded: amount,
+                orderDate: new Date(),
+                details: [
+                    { label: "Transaction type", value: "Token purchase" },
+                    { label: "New balance", value: `${user.tokens} tokens` },
+                ],
+            });
+        } catch (error) {
+            console.error("[userController.buyTokens] payment confirmation email failed", {
+                userId,
+                email: user.email,
+                amount,
+                error,
+            });
+        }
 
         return formatUser(user);
     },
@@ -35,29 +49,36 @@ export const userController = {
 
         await transactionService.record(user._id, user.email, amount, "spend", user.tokens);
 
-        sendEmail(
-            user.email,
-            "Tokens Spent",
-            `You have spent ${amount} tokens${reason ? ` for ${reason}` : ""}. Your new balance is ${user.tokens} tokens.`
-        );
-
         return formatUser(user);
     },
 };
 
 function formatUser(user: any): UserType {
+    const phoneNumber = user.phoneNumber ?? user.phone ?? "";
+    const street = user.street ?? user.addressStreet ?? "";
+    const city = user.city ?? user.addressCity ?? "";
+    const country = user.country ?? user.addressCountry ?? "";
+    const postCode = user.postCode ?? user.addressPostalCode ?? "";
+    const dateOfBirth = user.dateOfBirth ?? user.birthDate ?? null;
+
     return {
         _id: user._id.toString(),
         name: user.name,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        phone: user.phone,
-        addressStreet: user.addressStreet,
-        addressCity: user.addressCity,
-        addressCountry: user.addressCountry,
-        addressPostalCode: user.addressPostalCode,
-        birthDate: user.birthDate,
+        phoneNumber,
+        dateOfBirth,
+        street,
+        city,
+        country,
+        postCode,
+        phone: phoneNumber,
+        addressStreet: street,
+        addressCity: city,
+        addressCountry: country,
+        addressPostalCode: postCode,
+        birthDate: dateOfBirth,
         role: user.role,
         tokens: user.tokens,
         createdAt: user.createdAt,

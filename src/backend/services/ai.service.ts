@@ -58,19 +58,28 @@ export const aiService = {
             response: polishedText.trim(),
         });
 
-        await mailService.sendOrderConfirmationEmail({
-            email: user.email,
-            firstName: user.firstName,
-            orderId: String(order._id),
-            orderType: "ai",
-            productName: "AI content generation",
-            tokensDeducted: finalCost,
-            orderDate: order.createdAt || new Date(),
-            details: [
-                { label: "Prompt preview", value: prompt.slice(0, 120) },
-                { label: "Generated sections", value: String(chunksCount) },
-            ],
-        });
+        try {
+            await mailService.sendOrderConfirmationEmail({
+                email: user.email,
+                firstName: user.firstName,
+                orderId: order._id.toString(),
+                orderType: "ai",
+                productName: "AI request",
+                tokensDeducted: finalCost,
+                orderDate: order.createdAt ?? new Date(),
+                details: [
+                    { label: "Status", value: "completed" },
+                    { label: "Prompt", value: prompt.slice(0, 120) || "AI request" },
+                ],
+            });
+        } catch (error) {
+            console.error("[aiService.processPrompt] order confirmation email failed", {
+                userId,
+                email: user.email,
+                orderId: order._id?.toString?.(),
+                error,
+            });
+        }
 
         return order;
     },

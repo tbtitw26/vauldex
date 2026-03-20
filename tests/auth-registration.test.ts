@@ -11,12 +11,12 @@ const validRegistration = {
     lastName: "Doe",
     email: "jane@example.com",
     password: "supersecret",
-    phone: "+1 202 555 0123",
-    addressStreet: "123 Main Street",
-    addressCity: "New York",
-    addressCountry: "US",
-    addressPostalCode: "10001",
-    birthDate: "1990-01-15",
+    phoneNumber: "+1 202 555 0123",
+    street: "123 Main Street",
+    city: "New York",
+    country: "US",
+    postCode: "10001",
+    dateOfBirth: "1990-01-15",
 };
 
 test("backend registration rejects blocked countries", async () => {
@@ -26,11 +26,11 @@ test("backend registration rejects blocked countries", async () => {
         User.findOne = (async () => null) as typeof User.findOne;
 
         await assert.rejects(
-            () => authService.register({ ...validRegistration, addressCountry: "RU" }),
+            () => authService.register({ ...validRegistration, country: "RU" }),
             (error: unknown) => {
                 assert.ok(error instanceof RegistrationValidationError);
                 assert.equal(
-                    error.fields.addressCountry,
+                    error.fields.country,
                     "Registration is not available in the selected country."
                 );
                 return true;

@@ -8,15 +8,16 @@ export type RegistrationPayload = {
     password: string;
     firstName: string;
     lastName: string;
-    phone: string;
-    addressStreet: string;
-    addressCity: string;
-    addressCountry: string;
-    addressPostalCode: string;
-    birthDate: string;
+    phoneNumber: string;
+    street: string;
+    city: string;
+    country: string;
+    postCode: string;
+    dateOfBirth: string;
 };
 
 export type RegistrationFormValues = RegistrationPayload & {
+    confirmPassword: string;
     terms: boolean;
 };
 
@@ -249,6 +250,7 @@ export const BLOCKED_COUNTRY_CODES = new Set([
     "ML",
     "MM",
     "RU",
+    "SD",
     "SO",
     "SS",
     "SY",
@@ -274,6 +276,7 @@ const BLOCKED_COUNTRY_LABELS = new Set([
     "Russia",
     "Somalia",
     "South Sudan",
+    "Sudan",
     "Syria",
     "Venezuela",
     "Yemen",
@@ -344,7 +347,7 @@ export function isBlockedCountry(value: string): boolean {
 export function normalizeRegistrationPayload(
     values: Partial<RegistrationFormValues> | Partial<RegistrationPayload>
 ): RegistrationPayload {
-    const countryValue = normalizeText(values.addressCountry);
+    const countryValue = normalizeText(values.country ?? (values as any).addressCountry);
     const countryOption = getCountryOption(countryValue);
 
     return {
@@ -352,12 +355,12 @@ export function normalizeRegistrationPayload(
         password: typeof values.password === "string" ? values.password : "",
         firstName: normalizeText(values.firstName),
         lastName: normalizeText(values.lastName),
-        phone: normalizeText(values.phone),
-        addressStreet: normalizeText(values.addressStreet),
-        addressCity: normalizeText(values.addressCity),
-        addressCountry: countryOption?.label ?? countryValue,
-        addressPostalCode: normalizeText(values.addressPostalCode),
-        birthDate: normalizeText(values.birthDate),
+        phoneNumber: normalizeText(values.phoneNumber ?? (values as any).phone),
+        street: normalizeText(values.street ?? (values as any).addressStreet),
+        city: normalizeText(values.city ?? (values as any).addressCity),
+        country: countryOption?.label ?? countryValue,
+        postCode: normalizeText(values.postCode ?? (values as any).addressPostalCode),
+        dateOfBirth: normalizeText(values.dateOfBirth ?? (values as any).birthDate),
     };
 }
 
@@ -367,7 +370,7 @@ export function validateRegistration(
 ): RegistrationFieldErrors {
     const errors: RegistrationFieldErrors = {};
     const normalized = normalizeRegistrationPayload(values);
-    const birthDate = parseBirthDate(normalized.birthDate);
+    const birthDate = parseBirthDate(normalized.dateOfBirth);
 
     if (!normalized.firstName) errors.firstName = "First name is required.";
     if (!normalized.lastName) errors.lastName = "Last name is required.";
@@ -384,30 +387,40 @@ export function validateRegistration(
         errors.password = "Password must be at least 8 characters.";
     }
 
-    if (!normalized.phone) {
-        errors.phone = "Phone number is required.";
-    } else if (!PHONE_REGEX.test(normalized.phone)) {
-        errors.phone = "Enter a valid phone number.";
+    if ("confirmPassword" in values) {
+        const confirmPassword = normalizeText((values as RegistrationFormValues).confirmPassword);
+
+        if (!confirmPassword) {
+            errors.confirmPassword = "Confirm your password.";
+        } else if (confirmPassword !== normalized.password) {
+            errors.confirmPassword = "Passwords do not match.";
+        }
     }
 
-    if (!normalized.addressStreet) errors.addressStreet = "Street address is required.";
-    if (!normalized.addressCity) errors.addressCity = "City is required.";
-    if (!normalized.addressPostalCode) errors.addressPostalCode = "Postal code is required.";
-
-    if (!normalizeText(values.addressCountry)) {
-        errors.addressCountry = "Country is required.";
-    } else if (!getCountryOption(normalizeText(values.addressCountry))) {
-        errors.addressCountry = "Select a valid country.";
-    } else if (isBlockedCountry(normalizeText(values.addressCountry))) {
-        errors.addressCountry = "Registration is not available in the selected country.";
+    if (!normalized.phoneNumber) {
+        errors.phoneNumber = "Phone number is required.";
+    } else if (!PHONE_REGEX.test(normalized.phoneNumber)) {
+        errors.phoneNumber = "Enter a valid phone number.";
     }
 
-    if (!normalized.birthDate) {
-        errors.birthDate = "Birth date is required.";
+    if (!normalized.street) errors.street = "Street is required.";
+    if (!normalized.city) errors.city = "City is required.";
+    if (!normalized.postCode) errors.postCode = "Post code is required.";
+
+    if (!normalizeText(values.country ?? (values as any).addressCountry)) {
+        errors.country = "Country is required.";
+    } else if (!getCountryOption(normalizeText(values.country ?? (values as any).addressCountry))) {
+        errors.country = "Select a valid country.";
+    } else if (isBlockedCountry(normalizeText(values.country ?? (values as any).addressCountry))) {
+        errors.country = "Registration is not available in the selected country.";
+    }
+
+    if (!normalized.dateOfBirth) {
+        errors.dateOfBirth = "Date of birth is required.";
     } else if (!birthDate) {
-        errors.birthDate = "Enter a valid birth date.";
+        errors.dateOfBirth = "Enter a valid date of birth.";
     } else if (!isAdult(birthDate, REGISTRATION_MIN_AGE)) {
-        errors.birthDate = `You must be at least ${REGISTRATION_MIN_AGE} years old.`;
+        errors.dateOfBirth = `You must be at least ${REGISTRATION_MIN_AGE} years old.`;
     }
 
     if (options.requireTerms && !values.terms) {
