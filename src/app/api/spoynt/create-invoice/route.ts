@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/backend/middlewares/auth.middleware";
 import crypto from "crypto";
 import { spoyntPaymentService } from "@/backend/services/spoyntPayment.service";
+import { connectDB } from "@/backend/config/db";
+import { User } from "@/backend/models/user.model";
 import {
     convertToGBP,
     Currency,
@@ -73,6 +75,54 @@ function isForceSuccessEnabled() {
     return process.env.SPOYNT_FORCE_SUCCESS === "true" && process.env.NODE_ENV !== "production";
 }
 
+/**
+ * Build the Spoynt `customer` block from the DB user record.
+ * Minimum required: reference_id, name, email.
+ * For UK cards (AVS): address with country, city, full_address, post_code.
+ */
+function buildCustomerBlock(user: {
+    _id: string;
+    name?: string;
+    firstName?: string;
+    lastName?: string;
+    email: string;
+    phoneNumber?: string;
+    phone?: string;
+    country?: string;
+    city?: string;
+    street?: string;
+    addressStreet?: string;
+    postCode?: string;
+    addressPostalCode?: string;
+}) {
+    const name =
+        (user.name || `${user.firstName || ""} ${user.lastName || ""}`.trim()) || "Customer";
+    const phone = (user.phoneNumber || user.phone || "").replace(/[^\d+]/g, "");
+    const country = (user.country || "").trim();
+    const city = (user.city || "").trim();
+    const street = (user.street || user.addressStreet || "").trim();
+    const postCode = (user.postCode || user.addressPostalCode || "").trim();
+
+    const customer: Record<string, unknown> = {
+        reference_id: user._id.toString(),
+        name,
+        email: user.email,
+    };
+
+    if (phone) customer.phone = phone;
+
+    // Include address block when we have at least country (needed for UK AVS)
+    if (country) {
+        const address: Record<string, string> = { country };
+        if (city) address.city = city;
+        if (street) address.full_address = street;
+        if (postCode) address.post_code = postCode;
+        customer.address = address;
+    }
+
+    return customer;
+}
+
 export async function POST(req: NextRequest) {
     try {
         const payload = await requireAuth(req);
@@ -115,6 +165,14 @@ export async function POST(req: NextRequest) {
                 { status: 400 }
             );
         }
+
+        // ── Fetch user from DB for Spoynt customer block ────────────
+        await connectDB();
+        const dbUser = await User.findById(payload.sub).lean();
+        if (!dbUser) {
+            return NextResponse.json({ message: "User not found" }, { status: 404 });
+        }
+        const customer = buildCustomerBlock(dbUser as any);
 
         const defaultService = assertEnv("SPOYNT_DEFAULT_SERVICE");
         const resolution = resolveSpoyntCurrency(selectedCurrency, defaultService);
@@ -243,6 +301,7 @@ export async function POST(req: NextRequest) {
                         fail: failUrl,
                         pending: pendingUrlWithRef,
                     },
+                    customer,
                     metadata: {
                         user_id: payload.sub,
                         tokens: String(tokens),
