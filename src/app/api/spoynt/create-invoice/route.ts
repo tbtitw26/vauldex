@@ -333,7 +333,7 @@ export async function POST(req: NextRequest) {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                Accept: "*/*",
+                Accept: "application/json",
                 Authorization: basicAuthHeader(SPOYNT_ACCOUNT_ID, SPOYNT_API_KEY),
             },
             body: JSON.stringify(invoicePayload),
