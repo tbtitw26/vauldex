@@ -8,7 +8,7 @@ import { useAlert } from "@/context/AlertContext";
 import { useUser } from "@/context/UserContext";
 import Input from "@mui/joy/Input";
 import { useCurrency } from "@/context/CurrencyContext";
-import { Currency, getMinimumAmountForCurrency, MIN_GBP_AMOUNT, TOKENS_PER_GBP } from "@/resources/currencies";
+import { Currency, DEFAULT_PAYMENT_CURRENCY, getMinimumAmountForCurrency, MIN_GBP_AMOUNT, TOKENS_PER_GBP } from "@/resources/currencies";
 
 interface PricingCardProps {
     variant?: "starter" | "pro" | "premium" | "custom";
@@ -169,7 +169,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
                 referenceId: data.referenceId || "",
                 tokens: Number(data.tokens || expectedTokens),
                 createdAt: Date.now(),
-                currency: data.currency || "GBP",
+                currency: data.currency || DEFAULT_PAYMENT_CURRENCY,
                 amount: Number(data.amount || convertToGBP(selectedUiAmount)),
                 uiCurrency: data.uiCurrency || currency,
                 uiAmount: Number(data.uiAmount || selectedUiAmount),

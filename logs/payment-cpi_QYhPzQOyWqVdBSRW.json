@@ -1,0 +1,58 @@
+{
+  "extractedAt": "2026-03-24T20:27:00.000Z",
+  "source": "payment/error page — client-side data",
+  "payment": {
+    "cpi": "cpi_QYhPzQOyWqVdBSRW",
+    "referenceId": "1b411757-6bd1-4a54-a2de-3eb7bb1d8e16",
+    "status": "Failed",
+    "resolution": null,
+    "tokens": 4900,
+    "currency": "GBP",
+    "amount": 49,
+    "uiCurrency": "GBP",
+    "uiAmount": 49,
+    "date": "Mar 24, 2026, 08:27 PM",
+    "timestampISO": "2026-03-24T20:27:00.000Z"
+  },
+  "context": {
+    "page": "/payment/error",
+    "issue": "payment_card_gbp_hpp was used with GBP, but Vauldex only supports payment_card_eur_hpp with EUR",
+    "expectedService": "payment_card_eur_hpp",
+    "expectedCurrency": "EUR",
+    "actualService": "payment_card_gbp_hpp",
+    "actualCurrency": "GBP"
+  },
+  "errorDetails": {
+    "description": "Payment failed — user was redirected to /payment/error by Spoynt after unsuccessful card payment. Root cause: wrong Spoynt service (payment_card_gbp_hpp / GBP) was sent instead of payment_card_eur_hpp / EUR which is the only service configured for Vauldex.",
+    "possibleReasons": [
+      "Wrong Spoynt service: payment_card_gbp_hpp sent instead of payment_card_eur_hpp",
+      "GBP currency not enabled for Vauldex merchant — only EUR is available",
+      "AUD, CAD, NZD are Averis-only currencies, not available on Vauldex"
+    ]
+  },
+  "fix": {
+    "description": "Changed DEFAULT_PAYMENT_CURRENCY from GBP to EUR, SPOYNT_DEFAULT_SERVICE from payment_card_gbp_hpp to payment_card_eur_hpp, removed AUD/CAD/NZD (Averis-only), fixed hardcoded 'GBP' fallback in PricingCard purchaseIntent",
+    "files": [
+      "src/resources/currencies.ts",
+      ".env",
+      "src/app/api/spoynt/create-invoice/route.ts",
+      "src/components/constructor/pricing-card/PricingCard.tsx"
+    ]
+  },
+  "spoyntSupportChat": {
+    "date": "2026-03-24",
+    "messages": [
+      {
+        "from": "Shaip (Spoynt support)",
+        "time": "22:06",
+        "text": "Тут був передан payment_card_gbp_hpp і gbp, а нужно payment_card_eur_hpp і eur — на vauldex пока так"
+      },
+      {
+        "from": "Shaip (Spoynt support)",
+        "time": "22:07",
+        "text": "на averis только aud cad nzd"
+      }
+    ]
+  }
+}
+
