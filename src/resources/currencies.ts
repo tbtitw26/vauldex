@@ -2,18 +2,15 @@
 export const DISPLAY_CURRENCIES = [
     "GBP",
     "EUR",
-    // "AUD",
-    // "CAD",
-    // "NZD",
+    "AUD",
+    "CAD",
+    "NZD",
     // "NOK",
 ] as const;
 
 // Supported by checkout/backend, including currencies that can fall back to GBP until their Spoynt services are configured.
 export const SUPPORTED_CURRENCIES = [
     ...DISPLAY_CURRENCIES,
-    "AUD",
-    "CAD",
-    "NZD",
     "NOK",
 ] as const;
 
