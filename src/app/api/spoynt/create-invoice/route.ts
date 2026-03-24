@@ -38,6 +38,20 @@ function basicAuthHeader(username: string, password: string) {
 }
 
 function resolveSpoyntCurrency(selectedCurrency: Currency, defaultService: string): SpoyntResolution {
+    // 1. Always check per-currency env first (SPOYNT_DEFAULT_SERVICE_EUR, _GBP, etc.)
+    const envKey = `SPOYNT_DEFAULT_SERVICE_${selectedCurrency}`;
+    const perCurrencyService = process.env[envKey]?.trim();
+
+    if (perCurrencyService) {
+        return {
+            invoiceCurrency: selectedCurrency,
+            service: perCurrencyService,
+            fallbackToGBP: false,
+            missingServiceEnvKey: null,
+        };
+    }
+
+    // 2. For the default payment currency, use SPOYNT_DEFAULT_SERVICE
     if (selectedCurrency === DEFAULT_PAYMENT_CURRENCY) {
         return {
             invoiceCurrency: DEFAULT_PAYMENT_CURRENCY,
@@ -47,19 +61,7 @@ function resolveSpoyntCurrency(selectedCurrency: Currency, defaultService: strin
         };
     }
 
-    const envKey = `SPOYNT_DEFAULT_SERVICE_${selectedCurrency}`;
-    const service = process.env[envKey]?.trim();
-
-    if (service) {
-        return {
-            invoiceCurrency: selectedCurrency,
-            service,
-            fallbackToGBP: false,
-            missingServiceEnvKey: null,
-        };
-    }
-
-    // Auto-derive service name from the standard Spoynt pattern:
+    // 3. Auto-derive service name from the standard Spoynt pattern:
     // payment_card_{currency_lowercase}_hpp
     const derivedService = `payment_card_${selectedCurrency.toLowerCase()}_hpp`;
     console.warn(`[Spoynt] env ${envKey} is empty — auto-deriving service: ${derivedService}`);
