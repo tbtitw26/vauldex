@@ -1,7 +1,5 @@
 // Visible on the frontend selectors only.
 export const DISPLAY_CURRENCIES = [
-    "GBP",
-    "EUR",
     "AUD",
     "CAD",
     "NZD",
@@ -11,12 +9,15 @@ export const DISPLAY_CURRENCIES = [
 // Supported by checkout/backend, including currencies that can fall back to GBP until their Spoynt services are configured.
 export const SUPPORTED_CURRENCIES = [
     ...DISPLAY_CURRENCIES,
+    "GBP",
+    "EUR",
     "NOK",
 ] as const;
 
 export type Currency = (typeof SUPPORTED_CURRENCIES)[number];
 
 export const DEFAULT_PAYMENT_CURRENCY: Currency = "GBP";
+export const DEFAULT_DISPLAY_CURRENCY: Currency = "AUD";
 export const MIN_GBP_AMOUNT = 10;
 export const TOKENS_PER_GBP = 100;
 
