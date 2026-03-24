@@ -1,0 +1,69 @@
+{
+  "extractedAt": "2026-03-24T20:22:00.000Z",
+  "source": "payment/error page — client-side data",
+  "payment": {
+    "cpi": "cpi_TiA9pGjAllI87CvI",
+    "referenceId": "41ede460-bada-43ed-8564-849d741f585a",
+    "status": "Failed",
+    "resolution": null,
+    "tokens": 4900,
+    "currency": "GBP",
+    "amount": 49,
+    "uiCurrency": "GBP",
+    "uiAmount": 49,
+    "date": "Mar 24, 2026, 08:22 PM",
+    "timestampISO": "2026-03-24T20:22:00.000Z"
+  },
+  "context": {
+    "page": "/payment/error",
+    "userEmail": "yaroslav4447v@gmail.com",
+    "userId": "69c2ca6239a3286b316807d2",
+    "service": "payment_card_gbp_hpp",
+    "invoiceCurrency": "GBP",
+    "invoiceAmount": 49,
+    "merchantName": "Vauldex",
+    "spoyntBaseUrl": "https://api.spoynt.com",
+    "callbackUrl": "https://vauldex.co.uk/api/spoynt/webhook",
+    "returnSuccess": "https://vauldex.co.uk/payment/success",
+    "returnFail": "https://vauldex.co.uk/payment/error",
+    "returnPending": "https://vauldex.co.uk/payment/success"
+  },
+  "errorDetails": {
+    "description": "Payment failed — user was redirected to /payment/error by Spoynt after unsuccessful card payment or 3DS verification.",
+    "possibleReasons": [
+      "Insufficient funds on the card",
+      "Card declined by issuer",
+      "3DS verification failed or timed out",
+      "Expired payment session",
+      "Card not supported by payment processor"
+    ]
+  },
+  "relatedLogs": [
+    {
+      "timestamp": "2026-03-24T18:04:21.965Z",
+      "event": "create-invoice request",
+      "details": {
+        "userId": "69c2ca6239a3286b316807d2",
+        "currency": "GBP",
+        "amount": 49,
+        "tokens": 4900,
+        "service": "payment_card_gbp_hpp",
+        "fallbackToGBP": false
+      }
+    },
+    {
+      "timestamp": "2026-03-24T20:22:00.000Z",
+      "event": "payment failed — redirected to /payment/error",
+      "details": {
+        "cpi": "cpi_TiA9pGjAllI87CvI",
+        "referenceId": "41ede460-bada-43ed-8564-849d741f585a"
+      }
+    }
+  ],
+  "apiEndpoint": {
+    "description": "Fetch full payment record from MongoDB via API",
+    "url": "/api/spoynt/payment-log?cpi=cpi_TiA9pGjAllI87CvI",
+    "alternativeUrl": "/api/spoynt/payment-log?ref=41ede460-bada-43ed-8564-849d741f585a"
+  }
+}
+
