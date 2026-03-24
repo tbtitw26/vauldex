@@ -110,14 +110,30 @@ const PricingCard: React.FC<PricingCardProps> = ({
 
             const data = JSON.parse(text);
 
+            if (!data.redirectUrl || !data.cpi) {
+                showAlert("Error", data?.message || "Something went wrong", "error");
+                return;
+            }
+
             const purchaseIntent = {
-                tokens: isCustom
+                cpi: data.cpi,
+                referenceId: data.referenceId || "",
+                tokens: data.tokens || (isCustom
                     ? Math.floor(convertToGBP(customAmount) * TOKENS_PER_GBP)
-                    : tokens,
+                    : tokens),
                 createdAt: Date.now(),
+                currency: data.currency || "GBP",
+                amount: data.amount,
+                uiCurrency: data.uiCurrency || currency,
+                uiAmount: data.uiAmount,
+                service: data.service || "",
+                fallbackToGBP: Boolean(data.fallbackToGBP),
             };
 
             localStorage.setItem("pendingPurchase", JSON.stringify(purchaseIntent));
+            localStorage.setItem("spoyntLastCpi", data.cpi || "");
+            localStorage.setItem("spoyntLastTokens", String(purchaseIntent.tokens));
+            localStorage.setItem("spoyntOrderRef", purchaseIntent.referenceId || "");
 
             window.location.href = data.redirectUrl;
         } catch (err: any) {

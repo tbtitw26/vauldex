@@ -53,7 +53,8 @@ export default function PaymentSuccessPage() {
     const [referenceId, setReferenceId] = useState<string>("");
     const [paymentSnapshot, setPaymentSnapshot] = useState<ConfirmResponse["payment"] | null>(null);
 
-    const cpiFromQuery = sp.get("cpi") || "";
+    const cpiFromQuery = sp.get("cpi") || sp.get("id") || sp.get("invoice_id") || "";
+    const refFromQuery = sp.get("ref") || "";
 
     const badgeClass =
         state === "ok"
@@ -72,7 +73,7 @@ export default function PaymentSuccessPage() {
                 if (parsed && Number.isFinite(parsed.tokens)) {
                     const hydratedPurchase: PendingPurchase = {
                         cpi: String(parsed.cpi || cpiFromQuery || ""),
-                        referenceId: String(parsed.referenceId || localStorage.getItem("spoyntOrderRef") || ""),
+                        referenceId: String(parsed.referenceId || refFromQuery || localStorage.getItem("spoyntOrderRef") || ""),
                         tokens: Number(parsed.tokens),
                         createdAt: Number(parsed.createdAt) || Date.now(),
                         currency: parsed.currency ? String(parsed.currency) : undefined,
@@ -90,11 +91,22 @@ export default function PaymentSuccessPage() {
             if (cpiFromQuery) {
                 setPendingPurchase({
                     cpi: cpiFromQuery,
-                    referenceId: localStorage.getItem("spoyntOrderRef") || "",
+                    referenceId: refFromQuery || localStorage.getItem("spoyntOrderRef") || "",
                     tokens: Number(localStorage.getItem("spoyntLastTokens")) || 0,
                     createdAt: Date.now(),
                 });
-                setReferenceId(localStorage.getItem("spoyntOrderRef") || "");
+                setReferenceId(refFromQuery || localStorage.getItem("spoyntOrderRef") || "");
+                return;
+            }
+
+            if (refFromQuery) {
+                setPendingPurchase({
+                    cpi: "",
+                    referenceId: refFromQuery,
+                    tokens: Number(localStorage.getItem("spoyntLastTokens")) || 0,
+                    createdAt: Date.now(),
+                });
+                setReferenceId(refFromQuery);
                 return;
             }
 
@@ -105,11 +117,12 @@ export default function PaymentSuccessPage() {
             setState("error");
             setMsg("Could not restore your payment details.");
         }
-    }, [cpiFromQuery]);
+    }, [cpiFromQuery, refFromQuery]);
 
     useEffect(() => {
         const targetCpi = cpiFromQuery || pendingPurchase?.cpi || "";
-        if (!targetCpi || !pendingPurchase) return;
+        const targetRef = refFromQuery || pendingPurchase?.referenceId || "";
+        if ((!targetCpi && !targetRef) || !pendingPurchase) return;
 
         let cancelled = false;
         let timeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -128,12 +141,17 @@ export default function PaymentSuccessPage() {
             console.log("[Spoynt][client] confirm request", {
                 attempt,
                 cpi: targetCpi,
+                ref: targetRef,
                 pendingPurchase,
             });
 
             try {
+                const confirmParams = new URLSearchParams();
+                if (targetCpi) confirmParams.set("cpi", targetCpi);
+                if (targetRef) confirmParams.set("ref", targetRef);
+
                 const runConfirm = () =>
-                    fetch(`/api/spoynt/confirm?cpi=${encodeURIComponent(targetCpi)}`, {
+                    fetch(`/api/spoynt/confirm?${confirmParams.toString()}`, {
                         method: "GET",
                         credentials: "include",
                         cache: "no-store",

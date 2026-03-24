@@ -2,7 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/backend/config/db";
 import { User } from "@/backend/models/user.model";
 
+/**
+ * DEV-ONLY endpoint for manually crediting tokens in sandbox/development mode.
+ * Completely disabled when NODE_ENV=production (Next.js sets this automatically for `next start`).
+ */
 export async function POST(req: NextRequest) {
+    if (process.env.NODE_ENV === "production") {
+        return NextResponse.json({ message: "Not available in production" }, { status: 403 });
+    }
+
     const rid =
         (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`).toString();
 
