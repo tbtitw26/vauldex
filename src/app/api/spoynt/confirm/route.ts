@@ -236,7 +236,11 @@ export async function GET(req: NextRequest) {
             }
         }
 
-        if (status === "pending" || status === "created") {
+        // Spoynt statuses that mean "still in progress":
+        // - created: invoice just created
+        // - pending: waiting for processing
+        // - process_pending: customer is on HPP / 3DS in progress
+        if (status === "pending" || status === "created" || status === "process_pending") {
             return NextResponse.json({ status: "pending", payment: paymentDebug });
         }
 

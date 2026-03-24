@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/backend/middlewares/auth.middleware";
 import crypto from "crypto";
 import { spoyntPaymentService } from "@/backend/services/spoyntPayment.service";
+import { connectDB } from "@/backend/config/db";
+import { User } from "@/backend/models/user.model";
 import {
     convertToGBP,
     Currency,
@@ -56,16 +58,69 @@ function resolveSpoyntCurrency(selectedCurrency: Currency, defaultService: strin
         };
     }
 
+    // Auto-derive service name from the standard Spoynt pattern:
+    // payment_card_{currency_lowercase}_hpp
+    const derivedService = `payment_card_${selectedCurrency.toLowerCase()}_hpp`;
+    console.warn(`[Spoynt] env ${envKey} is empty — auto-deriving service: ${derivedService}`);
+
     return {
-        invoiceCurrency: DEFAULT_PAYMENT_CURRENCY,
-        service: defaultService,
-        fallbackToGBP: true,
+        invoiceCurrency: selectedCurrency,
+        service: derivedService,
+        fallbackToGBP: false,
         missingServiceEnvKey: envKey,
     };
 }
 
 function isForceSuccessEnabled() {
     return process.env.SPOYNT_FORCE_SUCCESS === "true" && process.env.NODE_ENV !== "production";
+}
+
+/**
+ * Build the Spoynt `customer` block from the DB user record.
+ * Minimum required: reference_id, name, email.
+ * For UK cards (AVS): address with country, city, full_address, post_code.
+ */
+function buildCustomerBlock(user: {
+    _id: string;
+    name?: string;
+    firstName?: string;
+    lastName?: string;
+    email: string;
+    phoneNumber?: string;
+    phone?: string;
+    country?: string;
+    city?: string;
+    street?: string;
+    addressStreet?: string;
+    postCode?: string;
+    addressPostalCode?: string;
+}) {
+    const name =
+        (user.name || `${user.firstName || ""} ${user.lastName || ""}`.trim()) || "Customer";
+    const phone = (user.phoneNumber || user.phone || "").replace(/[^\d+]/g, "");
+    const country = (user.country || "").trim();
+    const city = (user.city || "").trim();
+    const street = (user.street || user.addressStreet || "").trim();
+    const postCode = (user.postCode || user.addressPostalCode || "").trim();
+
+    const customer: Record<string, unknown> = {
+        reference_id: user._id.toString(),
+        name,
+        email: user.email,
+    };
+
+    if (phone) customer.phone = phone;
+
+    // Include address block when we have at least country (needed for UK AVS)
+    if (country) {
+        const address: Record<string, string> = { country };
+        if (city) address.city = city;
+        if (street) address.full_address = street;
+        if (postCode) address.post_code = postCode;
+        customer.address = address;
+    }
+
+    return customer;
 }
 
 export async function POST(req: NextRequest) {
@@ -111,6 +166,14 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        // ── Fetch user from DB for Spoynt customer block ────────────
+        await connectDB();
+        const dbUser = await User.findById(payload.sub).lean();
+        if (!dbUser) {
+            return NextResponse.json({ message: "User not found" }, { status: 404 });
+        }
+        const customer = buildCustomerBlock(dbUser as any);
+
         const defaultService = assertEnv("SPOYNT_DEFAULT_SERVICE");
         const resolution = resolveSpoyntCurrency(selectedCurrency, defaultService);
         const invoiceCurrency = resolution.invoiceCurrency;
@@ -142,6 +205,7 @@ export async function POST(req: NextRequest) {
             forceSuccess,
             fallbackToGBP: resolution.fallbackToGBP,
             missingServiceEnvKey: resolution.missingServiceEnvKey,
+            customer,
         });
 
         if (resolution.fallbackToGBP) {
@@ -234,6 +298,7 @@ export async function POST(req: NextRequest) {
                         fail: SPOYNT_RETURN_FAIL,
                         pending: SPOYNT_RETURN_PENDING,
                     },
+                    customer,
                     metadata: {
                         user_id: payload.sub,
                         tokens: String(tokens),
@@ -265,7 +330,7 @@ export async function POST(req: NextRequest) {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                Accept: "*/*",
+                Accept: "application/json",
                 Authorization: basicAuthHeader(SPOYNT_ACCOUNT_ID, SPOYNT_API_KEY),
             },
             body: JSON.stringify(invoicePayload),
@@ -295,8 +360,9 @@ export async function POST(req: NextRequest) {
             responseAmount: responseAttrs?.amount,
             responseStatus: responseAttrs?.status,
             responseResolution: responseAttrs?.resolution,
+            hppUrl: responseAttrs?.hpp_url,
+            flowAction: responseAttrs?.flow_data?.action,
             fallbackToGBP: resolution.fallbackToGBP,
-            full: json,
         });
 
         if (!cpi) {
@@ -315,7 +381,26 @@ export async function POST(req: NextRequest) {
             uiAmount: amountInSelectedCurrency!,
         });
 
-        const redirectUrl = `${SPOYNT_BASE_URL}/hpp/?cpi=${encodeURIComponent(cpi)}`;
+        // Spoynt API returns:
+        //   - hpp_url: "https://api.spoynt.com/redirect/hpp/?cpi=..." (302 → actual HPP)
+        //   - flow_data.action: "https://checkout.bankgate.io/hpp/..." (the actual HPP page)
+        //   - checkout_url: NOT present in current API version
+        // We prefer hpp_url → flow_data.action → manual fallback.
+        const spoyntHppUrl = responseAttrs?.hpp_url;
+        const flowDataAction = responseAttrs?.flow_data?.action;
+        const spoyntCheckoutUrl = responseAttrs?.checkout_url;
+        const hppFallbackBase = process.env.SPOYNT_HPP_URL || SPOYNT_BASE_URL;
+        const manualFallback = `${hppFallbackBase}/redirect/hpp/?cpi=${encodeURIComponent(cpi)}`;
+
+        const redirectUrl = spoyntHppUrl || flowDataAction || spoyntCheckoutUrl || manualFallback;
+
+        if (!spoyntHppUrl && !flowDataAction && !spoyntCheckoutUrl) {
+            console.warn("[Spoynt] No HPP URL found in response — using manual fallback", {
+                cpi,
+                redirectUrl,
+                hppFallbackBase,
+            });
+        }
 
         return NextResponse.json({
             cpi,
