@@ -295,7 +295,7 @@ export async function POST(req: NextRequest) {
 
         const createUrl = `${SPOYNT_BASE_URL}/payment-invoices`;
         const successUrlWithRef = `${SPOYNT_RETURN_SUCCESS}?ref=${encodeURIComponent(referenceId)}`;
-        const failUrl = SPOYNT_RETURN_FAIL;
+        const failUrlWithRef = `${SPOYNT_RETURN_FAIL}?ref=${encodeURIComponent(referenceId)}`;
         const pendingUrlWithRef = `${SPOYNT_RETURN_PENDING}?ref=${encodeURIComponent(referenceId)}`;
 
         const invoicePayload = {
@@ -310,7 +310,7 @@ export async function POST(req: NextRequest) {
                     callback_url: SPOYNT_CALLBACK_URL,
                     return_urls: {
                         success: successUrlWithRef,
-                        fail: failUrl,
+                        fail: failUrlWithRef,
                         pending: pendingUrlWithRef,
                     },
                     customer,

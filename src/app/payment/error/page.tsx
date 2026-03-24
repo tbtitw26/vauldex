@@ -1,8 +1,20 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import styles from "../success/PaymentSuccess.module.scss";
+
+type PendingPurchase = {
+    cpi?: string;
+    referenceId?: string;
+    tokens: number;
+    createdAt: number;
+    currency?: string;
+    amount?: number;
+    uiCurrency?: string;
+    uiAmount?: number;
+    service?: string;
+};
 
 const XCircleIcon = () => (
     <svg className={styles.iconSvg} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -14,9 +26,62 @@ const XCircleIcon = () => (
 
 export default function PaymentErrorPage() {
     const sp = useSearchParams();
-    const cpi = sp.get("cpi") || sp.get("id") || sp.get("invoice_id") || "—";
-    const ref = sp.get("ref") || "—";
+    const cpiFromQuery = sp.get("cpi") || sp.get("id") || sp.get("invoice_id") || "";
+    const refFromQuery = sp.get("ref") || "";
     const reason = sp.get("reason") || sp.get("error") || "";
+
+    const [pendingPurchase, setPendingPurchase] = useState<PendingPurchase | null>(null);
+
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem("pendingPurchase");
+            if (raw) {
+                const parsed = JSON.parse(raw) as Partial<PendingPurchase>;
+                if (parsed && Number.isFinite(parsed.tokens)) {
+                    setPendingPurchase({
+                        cpi: String(parsed.cpi || cpiFromQuery || ""),
+                        referenceId: String(parsed.referenceId || refFromQuery || localStorage.getItem("spoyntOrderRef") || ""),
+                        tokens: Number(parsed.tokens),
+                        createdAt: Number(parsed.createdAt) || Date.now(),
+                        currency: parsed.currency ? String(parsed.currency) : undefined,
+                        amount: Number.isFinite(Number(parsed.amount)) ? Number(parsed.amount) : undefined,
+                        uiCurrency: parsed.uiCurrency ? String(parsed.uiCurrency) : undefined,
+                        uiAmount: Number.isFinite(Number(parsed.uiAmount)) ? Number(parsed.uiAmount) : undefined,
+                        service: parsed.service ? String(parsed.service) : undefined,
+                    });
+                    return;
+                }
+            }
+            // Fallback: build from URL params only
+            setPendingPurchase({
+                cpi: cpiFromQuery,
+                referenceId: refFromQuery || localStorage.getItem("spoyntOrderRef") || "",
+                tokens: Number(localStorage.getItem("spoyntLastTokens")) || 0,
+                createdAt: Date.now(),
+            });
+        } catch {
+            setPendingPurchase({
+                cpi: cpiFromQuery,
+                referenceId: refFromQuery,
+                tokens: 0,
+                createdAt: Date.now(),
+            });
+        }
+    }, [cpiFromQuery, refFromQuery]);
+
+    const displayCpi = cpiFromQuery || pendingPurchase?.cpi || "—";
+    const displayRef = refFromQuery || pendingPurchase?.referenceId || "—";
+
+    const formattedDate = useMemo(() => {
+        const ts = pendingPurchase?.createdAt || Date.now();
+        return new Date(ts).toLocaleString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+    }, [pendingPurchase]);
 
     return (
         <main className={styles.page}>
@@ -49,11 +114,11 @@ export default function PaymentErrorPage() {
                 <div className={styles.detailsGrid}>
                     <div className={styles.detailItem}>
                         <span className={styles.detailLabel}>Payment ID (CPI)</span>
-                        <span className={styles.detailValueMono}>{cpi}</span>
+                        <span className={styles.detailValueMono}>{displayCpi}</span>
                     </div>
                     <div className={styles.detailItem}>
                         <span className={styles.detailLabel}>Reference ID</span>
-                        <span className={styles.detailValueMono}>{ref}</span>
+                        <span className={styles.detailValueMono}>{displayRef}</span>
                     </div>
                     <div className={styles.detailItem}>
                         <span className={styles.detailLabel}>Status</span>
@@ -61,16 +126,23 @@ export default function PaymentErrorPage() {
                     </div>
                     <div className={styles.detailItem}>
                         <span className={styles.detailLabel}>Date</span>
-                        <span className={styles.detailValue}>
-                            {new Date().toLocaleString("en-US", {
-                                year: "numeric",
-                                month: "short",
-                                day: "2-digit",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                            })}
-                        </span>
+                        <span className={styles.detailValue}>{formattedDate}</span>
                     </div>
+                    {pendingPurchase && pendingPurchase.tokens > 0 && (
+                        <div className={styles.detailItem}>
+                            <span className={styles.detailLabel}>Selected package</span>
+                            <span className={styles.detailValue}>{pendingPurchase.tokens} tokens</span>
+                        </div>
+                    )}
+                    {(pendingPurchase?.currency || pendingPurchase?.uiCurrency) && (
+                        <div className={styles.detailItem}>
+                            <span className={styles.detailLabel}>Currency / Amount</span>
+                            <span className={styles.detailValue}>
+                                {pendingPurchase.uiAmount ?? pendingPurchase.amount ?? "—"}{" "}
+                                {pendingPurchase.uiCurrency || pendingPurchase.currency || ""}
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 <div className={styles.divider} />
