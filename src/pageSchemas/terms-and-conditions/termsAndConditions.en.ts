@@ -77,7 +77,7 @@ const termsSchema: PageSchema = {
             bullets: [
                 "4.1. Payments must be completed using the methods listed on the website.",
                 "4.2. Services become available only after successful payment.",
-                "4.3. Prices are displayed in GBP (£), EUR (€), USD ($), AUD ($), CAD ($), NZD ($) or NOK (kr.) and may include applicable taxes.",
+                "4.3. Prices are displayed in EUR (€), GBP (£) or NOK (kr.) and may include applicable taxes.",
                 "4.4. Tokens represent prepaid access to digital Services and have no cash value.",
             ],
         },

@@ -149,7 +149,7 @@ export async function POST(req: NextRequest) {
             selectedCurrency = DEFAULT_PAYMENT_CURRENCY;
             amountInSelectedCurrency = roundCurrency(tokens / TOKENS_PER_GBP);
             if (amountInSelectedCurrency < MIN_GBP_AMOUNT) {
-                return NextResponse.json({ message: `Minimum is ${MIN_GBP_AMOUNT} GBP` }, { status: 400 });
+                return NextResponse.json({ message: `Minimum is ${MIN_GBP_AMOUNT} ${DEFAULT_PAYMENT_CURRENCY}` }, { status: 400 });
             }
         } else if (body.currency && body.amount) {
             const requestedCurrency = String(body.currency).toUpperCase();

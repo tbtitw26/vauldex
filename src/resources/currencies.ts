@@ -1,32 +1,28 @@
 // Visible on the frontend selectors only.
+// Vauldex: only EUR is available via Spoynt (payment_card_eur_hpp).
+// AUD, CAD, NZD are Averis-only.
 export const DISPLAY_CURRENCIES = [
-    "AUD",
-    "CAD",
-    "NZD",
+    "EUR",
+    "GBP",
     // "NOK",
 ] as const;
 
-// Supported by checkout/backend, including currencies that can fall back to GBP until their Spoynt services are configured.
+// Supported by checkout/backend, including currencies that can fall back to EUR until their Spoynt services are configured.
 export const SUPPORTED_CURRENCIES = [
     ...DISPLAY_CURRENCIES,
-    "GBP",
-    "EUR",
     "NOK",
 ] as const;
 
 export type Currency = (typeof SUPPORTED_CURRENCIES)[number];
 
-export const DEFAULT_PAYMENT_CURRENCY: Currency = "GBP";
-export const DEFAULT_DISPLAY_CURRENCY: Currency = "AUD";
+export const DEFAULT_PAYMENT_CURRENCY: Currency = "EUR";
+export const DEFAULT_DISPLAY_CURRENCY: Currency = "EUR";
 export const MIN_GBP_AMOUNT = 10;
 export const TOKENS_PER_GBP = 100;
 
 export const CURRENCY_SIGNS: Record<Currency, string> = {
     GBP: "£",
     EUR: "€",
-    AUD: "A$",
-    CAD: "C$",
-    NZD: "NZ$",
     NOK: "kr",
 };
 
@@ -34,9 +30,6 @@ export const CURRENCY_SIGNS: Record<Currency, string> = {
 export const CURRENCY_PER_GBP: Record<Currency, number> = {
     GBP: 1,
     EUR: 1.17,
-    AUD: 1.93,
-    CAD: 1.72,
-    NZD: 2.07,
     NOK: 13.6,
 };
 
