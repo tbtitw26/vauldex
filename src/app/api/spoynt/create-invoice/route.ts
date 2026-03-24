@@ -56,10 +56,15 @@ function resolveSpoyntCurrency(selectedCurrency: Currency, defaultService: strin
         };
     }
 
+    // Auto-derive service name from the standard Spoynt pattern:
+    // payment_card_{currency_lowercase}_hpp
+    const derivedService = `payment_card_${selectedCurrency.toLowerCase()}_hpp`;
+    console.warn(`[Spoynt] env ${envKey} is empty — auto-deriving service: ${derivedService}`);
+
     return {
-        invoiceCurrency: DEFAULT_PAYMENT_CURRENCY,
-        service: defaultService,
-        fallbackToGBP: true,
+        invoiceCurrency: selectedCurrency,
+        service: derivedService,
+        fallbackToGBP: false,
         missingServiceEnvKey: envKey,
     };
 }
@@ -219,6 +224,10 @@ export async function POST(req: NextRequest) {
         const SPOYNT_RETURN_PENDING = assertEnv("SPOYNT_RETURN_PENDING");
 
         const createUrl = `${SPOYNT_BASE_URL}/payment-invoices`;
+        const successUrlWithRef = `${SPOYNT_RETURN_SUCCESS}?ref=${encodeURIComponent(referenceId)}`;
+        const failUrl = SPOYNT_RETURN_FAIL;
+        const pendingUrlWithRef = `${SPOYNT_RETURN_PENDING}?ref=${encodeURIComponent(referenceId)}`;
+
         const invoicePayload = {
             data: {
                 type: "payment-invoices",
@@ -230,9 +239,9 @@ export async function POST(req: NextRequest) {
                     description: `${merchantName} tokens: ${tokens}`,
                     callback_url: SPOYNT_CALLBACK_URL,
                     return_urls: {
-                        success: SPOYNT_RETURN_SUCCESS,
-                        fail: SPOYNT_RETURN_FAIL,
-                        pending: SPOYNT_RETURN_PENDING,
+                        success: successUrlWithRef,
+                        fail: failUrl,
+                        pending: pendingUrlWithRef,
                     },
                     metadata: {
                         user_id: payload.sub,
@@ -295,6 +304,8 @@ export async function POST(req: NextRequest) {
             responseAmount: responseAttrs?.amount,
             responseStatus: responseAttrs?.status,
             responseResolution: responseAttrs?.resolution,
+            checkoutUrl: responseAttrs?.checkout_url,
+            flow: responseAttrs?.flow,
             fallbackToGBP: resolution.fallbackToGBP,
             full: json,
         });
@@ -315,7 +326,35 @@ export async function POST(req: NextRequest) {
             uiAmount: amountInSelectedCurrency!,
         });
 
-        const redirectUrl = `${SPOYNT_BASE_URL}/hpp/?cpi=${encodeURIComponent(cpi)}`;
+        // Spoynt API returns:
+        //   - hpp_url: "https://api.spoynt.com/redirect/hpp/?cpi=..." (302 → actual HPP)
+        //   - flow_data.action: "https://checkout.bankgate.io/hpp/..." (the actual HPP page)
+        //   - checkout_url: NOT present in current API version
+        // We prefer hpp_url → flow_data.action → manual fallback.
+        const spoyntHppUrl = responseAttrs?.hpp_url;
+        const flowDataAction = responseAttrs?.flow_data?.action;
+        const spoyntCheckoutUrl = responseAttrs?.checkout_url; // legacy/future compat
+        const hppFallbackBase = process.env.SPOYNT_HPP_URL || SPOYNT_BASE_URL;
+        const manualFallback = `${hppFallbackBase}/redirect/hpp/?cpi=${encodeURIComponent(cpi)}`;
+
+        const redirectUrl = spoyntHppUrl || flowDataAction || spoyntCheckoutUrl || manualFallback;
+
+        console.log("[Spoynt] resolved redirect URL", {
+            cpi,
+            spoyntHppUrl,
+            flowDataAction,
+            spoyntCheckoutUrl,
+            manualFallback,
+            redirectUrl,
+        });
+
+        if (!spoyntHppUrl && !flowDataAction && !spoyntCheckoutUrl) {
+            console.warn("[Spoynt] No HPP URL found in response — using manual fallback", {
+                cpi,
+                redirectUrl,
+                hppFallbackBase,
+            });
+        }
 
         return NextResponse.json({
             cpi,

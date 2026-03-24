@@ -130,11 +130,23 @@ export async function POST(req: NextRequest) {
 
         const json = await r.json();
         const cpi = json?.data?.id;
+        const responseAttrs = json?.data?.attributes;
         if (!cpi) {
             return NextResponse.json({ message: "Spoynt response missing invoice id", raw: json }, { status: 502 });
         }
 
-        const redirectUrl = `${SPOYNT_BASE_URL}/hpp/?cpi=${encodeURIComponent(cpi)}`;
+        // Use hpp_url from Spoynt response (the authoritative HPP URL)
+        // Falls back to flow_data.action → checkout_url → manual fallback
+        const spoyntHppUrl = responseAttrs?.hpp_url;
+        const flowDataAction = responseAttrs?.flow_data?.action;
+        const spoyntCheckoutUrl = responseAttrs?.checkout_url;
+        const hppFallbackBase = process.env.SPOYNT_HPP_URL || SPOYNT_BASE_URL;
+        const redirectUrl = spoyntHppUrl || flowDataAction || spoyntCheckoutUrl
+            || `${hppFallbackBase}/redirect/hpp/?cpi=${encodeURIComponent(cpi)}`;
+
+        if (!spoyntHppUrl && !flowDataAction && !spoyntCheckoutUrl) {
+            console.warn("[Spoynt] No HPP URL in response — using fallback", { cpi, redirectUrl });
+        }
 
         return NextResponse.json({
             cpi,

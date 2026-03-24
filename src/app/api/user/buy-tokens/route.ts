@@ -3,7 +3,16 @@ import { requireAuth } from "@/backend/middlewares/auth.middleware";
 import { userController } from "@/backend/controllers/user.controller";
 import { convertToGBP, isSupportedCurrency, TOKENS_PER_GBP } from "@/resources/currencies";
 
+/**
+ * DEV-ONLY: direct token crediting without payment verification.
+ * In production, tokens are credited exclusively via /api/spoynt/webhook and /api/spoynt/confirm
+ * after Spoynt verifies the real payment.
+ */
 export async function POST(req: NextRequest) {
+    if (process.env.NODE_ENV === "production") {
+        return NextResponse.json({ message: "Not available in production. Use Spoynt checkout." }, { status: 403 });
+    }
+
     try {
         const payload = await requireAuth(req);
         const body = await req.json();

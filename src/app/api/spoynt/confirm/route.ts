@@ -70,12 +70,22 @@ async function sendPaymentConfirmationEmail(params: {
 export async function GET(req: NextRequest) {
     try {
         const payload = await requireAuth(req);
-        const cpi = new URL(req.url).searchParams.get("cpi");
+        const reqUrl = new URL(req.url);
+        let cpi = reqUrl.searchParams.get("cpi");
+        const ref = reqUrl.searchParams.get("ref");
+
+        // If no CPI but we have a reference_id, look up the payment record by reference
+        if (!cpi && ref) {
+            const record = await spoyntPaymentService.getByReferenceId(ref);
+            if (record?.cpi) {
+                cpi = record.cpi;
+            }
+        }
 
         if (!cpi) return NextResponse.json({ message: "Missing cpi" }, { status: 400 });
 
         if (isForceSuccessEnabled()) {
-            const tokensFromQuery = Number(new URL(req.url).searchParams.get("tokens"));
+            const tokensFromQuery = Number(reqUrl.searchParams.get("tokens"));
             const tokens = Number.isFinite(tokensFromQuery) && tokensFromQuery > 0 ? tokensFromQuery : null;
 
             const creditLock = await spoyntPaymentService.tryBeginCredit(cpi);
@@ -146,9 +156,9 @@ export async function GET(req: NextRequest) {
         const SPOYNT_ACCOUNT_ID = assertEnv("SPOYNT_ACCOUNT_ID");
         const SPOYNT_API_KEY = assertEnv("SPOYNT_API_KEY");
 
-        const url = `${SPOYNT_BASE_URL}/payment-invoices/${encodeURIComponent(cpi)}`;
+        const fetchUrl = `${SPOYNT_BASE_URL}/payment-invoices/${encodeURIComponent(cpi)}`;
 
-        const r = await fetch(url, {
+        const r = await fetch(fetchUrl, {
             method: "GET",
             headers: {
                 Accept: "application/json",
@@ -236,7 +246,12 @@ export async function GET(req: NextRequest) {
             }
         }
 
-        if (status === "pending" || status === "created") {
+        // Spoynt statuses that mean "still in progress":
+        // - created: invoice just created
+        // - pending: waiting for processing
+        // - process_pending: customer is on HPP / 3DS in progress
+        const pendingStatuses = ["pending", "created", "process_pending"];
+        if (pendingStatuses.includes(status)) {
             return NextResponse.json({ status: "pending", payment: paymentDebug });
         }
 

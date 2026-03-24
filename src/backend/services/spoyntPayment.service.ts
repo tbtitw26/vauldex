@@ -45,6 +45,11 @@ export const spoyntPaymentService = {
         return SpoyntPayment.findOne({ cpi });
     },
 
+    async getByReferenceId(referenceId: string): Promise<SpoyntPaymentDocument | null> {
+        await connectDB();
+        return SpoyntPayment.findOne({ referenceId });
+    },
+
     async markStatusByCpi(params: {
         cpi: string;
         status?: string;
