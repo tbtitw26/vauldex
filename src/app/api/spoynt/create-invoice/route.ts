@@ -15,6 +15,7 @@ import {
     roundCurrency,
     TOKENS_PER_GBP,
 } from "@/resources/currencies";
+import { getCountryOption } from "@/shared/registration";
 
 const SPOYNT_MERCHANT_NAME = "Vauldex";
 
@@ -103,6 +104,17 @@ function buildCustomerBlock(user: {
     const street = (user.street || user.addressStreet || "").trim();
     const postCode = (user.postCode || user.addressPostalCode || "").trim();
 
+    // Spoynt requires ISO 3166-1 alpha-2 country code (e.g. "GB", "US").
+    // DB may store full name ("United Kingdom") or already a code ("GB").
+    const countryOption = country ? getCountryOption(country) : null;
+    const countryCode = countryOption?.code || (country.length === 2 ? country.toUpperCase() : "");
+
+    console.log("[Spoynt] buildCustomerBlock country resolution", {
+        rawCountry: country,
+        resolvedCode: countryCode,
+        matchedOption: countryOption?.label ?? null,
+    });
+
     const customer: Record<string, unknown> = {
         reference_id: user._id.toString(),
         name,
@@ -112,8 +124,8 @@ function buildCustomerBlock(user: {
     if (phone) customer.phone = phone;
 
     // Include address block when we have at least country (needed for UK AVS)
-    if (country) {
-        const address: Record<string, string> = { country };
+    if (countryCode) {
+        const address: Record<string, string> = { country: countryCode };
         if (city) address.city = city;
         if (street) address.full_address = street;
         if (postCode) address.post_code = postCode;

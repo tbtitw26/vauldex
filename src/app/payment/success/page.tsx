@@ -43,6 +43,28 @@ type ConfirmResponse = {
 const MAX_CONFIRM_ATTEMPTS = 15;
 const CONFIRM_RETRY_MS = 2000;
 
+/* ── SVG icons ── */
+const CheckIcon = () => (
+    <svg className={styles.iconSvg} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="20 6 9 17 4 12" />
+    </svg>
+);
+
+const ClockIcon = () => (
+    <svg className={styles.iconSvg} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <polyline points="12 6 12 12 16 14" />
+    </svg>
+);
+
+const AlertIcon = () => (
+    <svg className={styles.iconSvg} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+    </svg>
+);
+
 export default function PaymentSuccessPage() {
     const sp = useSearchParams();
 
@@ -64,6 +86,24 @@ export default function PaymentSuccessPage() {
                 : state === "error"
                     ? styles.badgeError
                     : styles.badgeLoading;
+
+    const iconWrapperClass =
+        state === "ok"
+            ? styles.iconOk
+            : state === "pending"
+                ? styles.iconPending
+                : state === "error"
+                    ? styles.iconError
+                    : styles.iconLoading;
+
+    const StatusIcon =
+        state === "ok"
+            ? CheckIcon
+            : state === "pending"
+                ? ClockIcon
+                : state === "error"
+                    ? AlertIcon
+                    : null;
 
     useEffect(() => {
         try {
@@ -250,13 +290,38 @@ export default function PaymentSuccessPage() {
         });
     }, [pendingPurchase]);
 
+    const displayCpi = cpiFromQuery || pendingPurchase?.cpi || "—";
+    const displayRef = referenceId || pendingPurchase?.referenceId || "—";
+
     return (
         <main className={styles.page}>
             <section className={styles.card}>
+                {/* Icon */}
+                <div className={`${styles.iconWrapper} ${iconWrapperClass}`}>
+                    {StatusIcon ? <StatusIcon /> : <div className={styles.spinner} />}
+                </div>
+
+                {/* Header */}
                 <div className={styles.header}>
                     <div>
-                        <h1 className={styles.title}>Payment status</h1>
-                        <p className={styles.subtitle}>We are confirming your payment with Spoynt and checking the 3DS result.</p>
+                        <h1 className={styles.title}>
+                            {state === "ok"
+                                ? "Payment confirmed"
+                                : state === "pending"
+                                    ? "Payment processing"
+                                    : state === "error"
+                                        ? "Payment issue"
+                                        : "Verifying payment"}
+                        </h1>
+                        <p className={styles.subtitle}>
+                            {state === "ok"
+                                ? "Your tokens have been credited to your account."
+                                : state === "pending"
+                                    ? "We're waiting for Spoynt to finalize the 3DS verification."
+                                    : state === "error"
+                                        ? "Something went wrong during payment verification."
+                                        : "We are confirming your payment with Spoynt…"}
+                        </p>
                     </div>
                     <span className={`${styles.badge} ${badgeClass}`}>
                         {state === "ok" ? "Confirmed" : state === "pending" ? "Pending" : state === "error" ? "Error" : "Loading"}
@@ -265,49 +330,83 @@ export default function PaymentSuccessPage() {
 
                 <p className={styles.message}>{msg}</p>
 
+                <div className={styles.divider} />
+
+                {/* Token highlight block */}
+                {(creditedTokens !== null || (pendingPurchase && pendingPurchase.tokens > 0)) && (
+                    <div className={styles.highlightBlock}>
+                        <div>
+                            <div className={styles.highlightLabel}>
+                                {creditedTokens !== null ? "Credited tokens" : "Selected package"}
+                            </div>
+                        </div>
+                        <div className={styles.highlightValue}>
+                            {creditedTokens !== null ? creditedTokens : pendingPurchase?.tokens} tokens
+                        </div>
+                    </div>
+                )}
+
+                {/* Details grid */}
                 <div className={styles.detailsGrid}>
                     <div className={styles.detailItem}>
-                        <span>Selected package</span>
+                        <span className={styles.detailLabel}>Payment ID (CPI)</span>
+                        <span className={styles.detailValueMono}>{displayCpi}</span>
+                    </div>
+                    <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Reference ID</span>
+                        <span className={styles.detailValueMono}>{displayRef}</span>
+                    </div>
+                    <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Status</span>
                         <span className={styles.detailValue}>
-                            {pendingPurchase ? `${pendingPurchase.tokens} tokens` : "—"}
+                            {paymentSnapshot?.status || (state === "ok" ? "Processed" : state === "pending" ? "Processing" : state === "error" ? "Failed" : "Checking...")}
                         </span>
                     </div>
                     <div className={styles.detailItem}>
-                        <span>Reference</span>
-                        <span className={styles.detailValue}>{referenceId || pendingPurchase?.referenceId || "—"}</span>
-                    </div>
-                    <div className={styles.detailItem}>
-                        <span>Credited tokens</span>
+                        <span className={styles.detailLabel}>Resolution</span>
                         <span className={styles.detailValue}>
-                            {creditedTokens !== null ? `${creditedTokens} tokens` : "—"}
+                            {paymentSnapshot?.resolution || (state === "ok" ? "OK" : "—")}
                         </span>
                     </div>
                     <div className={styles.detailItem}>
-                        <span>Selected at</span>
-                        <span className={styles.detailValue}>{formattedPendingDate}</span>
+                        <span className={styles.detailLabel}>Invoice currency</span>
+                        <span className={styles.detailValue}>
+                            {paymentSnapshot?.invoiceCurrency || pendingPurchase?.currency || "—"}
+                        </span>
                     </div>
                     <div className={styles.detailItem}>
-                        <span>Invoice currency</span>
-                        <span className={styles.detailValue}>{paymentSnapshot?.invoiceCurrency || pendingPurchase?.currency || "—"}</span>
-                    </div>
-                    <div className={styles.detailItem}>
-                        <span>Invoice amount</span>
+                        <span className={styles.detailLabel}>Invoice amount</span>
                         <span className={styles.detailValue}>
                             {paymentSnapshot?.invoiceAmount ?? pendingPurchase?.amount ?? "—"}
                         </span>
                     </div>
                     <div className={styles.detailItem}>
-                        <span>Requested currency</span>
-                        <span className={styles.detailValue}>{paymentSnapshot?.uiCurrency || pendingPurchase?.uiCurrency || "—"}</span>
+                        <span className={styles.detailLabel}>Requested currency</span>
+                        <span className={styles.detailValue}>
+                            {paymentSnapshot?.uiCurrency || pendingPurchase?.uiCurrency || "—"}
+                        </span>
                     </div>
                     <div className={styles.detailItem}>
-                        <span>Requested amount</span>
+                        <span className={styles.detailLabel}>Requested amount</span>
                         <span className={styles.detailValue}>
                             {paymentSnapshot?.uiAmount ?? pendingPurchase?.uiAmount ?? "—"}
                         </span>
                     </div>
+                    <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Date</span>
+                        <span className={styles.detailValue}>{formattedPendingDate}</span>
+                    </div>
+                    {paymentSnapshot?.merchantName && (
+                        <div className={styles.detailItem}>
+                            <span className={styles.detailLabel}>Merchant</span>
+                            <span className={styles.detailValue}>{paymentSnapshot.merchantName}</span>
+                        </div>
+                    )}
                 </div>
 
+                <div className={styles.divider} />
+
+                {/* Actions */}
                 <div className={styles.actions}>
                     <a className={styles.primaryBtn} href="/dashboard">
                         Go to dashboard
@@ -315,10 +414,12 @@ export default function PaymentSuccessPage() {
                     <a className={styles.secondaryBtn} href="/pricing">
                         Buy more tokens
                     </a>
+                    {state === "error" && (
+                        <a className={styles.secondaryBtn} href="/contact-us">
+                            Contact support
+                        </a>
+                    )}
                 </div>
-
-                <p className={styles.meta}>CPI: {cpiFromQuery || pendingPurchase?.cpi || "—"}</p>
-                <p className={styles.meta}>Reference: {referenceId || pendingPurchase?.referenceId || "—"}</p>
             </section>
         </main>
     );
