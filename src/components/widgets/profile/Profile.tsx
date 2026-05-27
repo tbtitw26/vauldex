@@ -6,7 +6,7 @@ import styles from "./Profile.module.scss";
 
 const Profile = () => {
     return (
-        <div>
+        <div className={styles.accountPage}>
             <ProfileHead />
             <BalanceCard />
             <Dashboard />

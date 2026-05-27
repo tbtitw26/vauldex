@@ -1,9 +1,8 @@
 .dashboard {
   display: grid;
-  grid-template-columns: 70% 30%;
-  align-items: start;
+  grid-template-columns: 7fr 3fr;
+  align-items: stretch;
   gap: 1.5rem;
-  padding: 2rem 0;
 
   @media (max-width: 900px) {
     grid-template-columns: 1fr;

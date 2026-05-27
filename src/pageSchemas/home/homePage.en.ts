@@ -208,11 +208,12 @@ const schema: PageSchema = {
                     price: "€10",
                     tokens: 1000,
                     badgeTop: "Starter Plan",
-                    description: "Perfect for first-time users.",
+                    description: "1,000 tokens to get started.",
                     features: [
-                        "1 instant ATS-ready CV",
-                        "Modern templates",
-                        "Basic formatting"
+                        "Full access to all features",
+                        "AI-powered CV generation",
+                        "All templates & formats",
+                        "Tokens never expire"
                     ],
                     buttonText: "Start Now",
                     buttonLink: "/checkout?plan=starter",
@@ -224,12 +225,12 @@ const schema: PageSchema = {
                     price: "€49",
                     tokens: 4900,
                     badgeTop: "Most Popular",
-                    description: "For active job seekers.",
+                    description: "4,900 tokens — best for regular use.",
                     features: [
-                        "Unlimited generations",
-                        "PDF/DOCX export",
-                        "Priority support",
-                        "Template customization"
+                        "Full access to all features",
+                        "AI-powered CV generation",
+                        "All templates & formats",
+                        "Tokens never expire"
                     ],
                     buttonText: "Go Pro",
                     buttonLink: "/checkout?plan=pro",
@@ -241,13 +242,12 @@ const schema: PageSchema = {
                     price: "€99",
                     tokens: 9900,
                     badgeTop: "Recommended",
-                    description: "Additional review support.",
+                    description: "9,900 tokens — maximum value.",
                     features: [
-                        "Unlimited CVs",
-                        "24h review option",
-                        "Personalization",
-                        "Cover letter builder",
-                        "Priority support"
+                        "Full access to all features",
+                        "AI-powered CV generation",
+                        "All templates & formats",
+                        "Tokens never expire"
                     ],
                     buttonText: "Choose Premium",
                     buttonLink: "/checkout?plan=premium",
@@ -259,11 +259,12 @@ const schema: PageSchema = {
                     price: "dynamic",
                     tokens: 0,
                     badgeTop: "Flexible",
-                    description: "Pay only for what you use.",
+                    description: "Choose your own amount.",
                     features: [
-                        "Custom credits",
-                        "Instant token calculator",
-                        "Credits never expire"
+                        "Full access to all features",
+                        "AI-powered CV generation",
+                        "All templates & formats",
+                        "Tokens never expire"
                     ],
                     buttonText: "Buy Custom",
                     buttonLink: "/checkout?plan=custom",
