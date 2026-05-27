@@ -337,30 +337,51 @@ export async function sendEmail(
 }
 
 function defaultTemplate(title: string, message: string) {
-    return `
-    <div style="font-family: Arial, sans-serif; background:#f4faff; padding:20px; color:#333;">
-      <div style="max-width:600px; margin:auto; background:#fff; border-radius:8px; padding:30px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
-        <h2 style="color:#007BFF; text-align:center; margin-bottom:24px;">${escapeHtml(title)}</h2>
+    const appUrl = ENV.APP_URL;
+    const logoUrl = `${appUrl}/logo.png`;
+    const companyName = escapeHtml(ENV.COMPANY_NAME);
+    const websiteName = escapeHtml(ENV.WEBSITE_NAME);
+    const supportEmail = ENV.SUPPORT_EMAIL;
+    const year = new Date().getFullYear();
 
-        <p style="font-size:16px; line-height:1.6; color:#333; white-space:pre-line;">
-          ${escapeHtml(message)}
-        </p>
-
-        <div style="text-align:center; margin:30px 0;">
-          <a
-            href="${ENV.APP_URL}"
-            style="background:#007BFF; color:#fff; text-decoration:none; padding:12px 24px; border-radius:8px; font-weight:bold; display:inline-block;"
-          >
-            Open ${escapeHtml(ENV.WEBSITE_NAME)}
-          </a>
-        </div>
-
-        <hr style="margin:20px 0; border:none; border-top:1px solid #eee;" />
-
-        <p style="font-size:14px; color:#777; text-align:center; margin:0;">
-          © ${new Date().getFullYear()} ${escapeHtml(ENV.COMPANY_NAME)} - All rights reserved.
-        </p>
-      </div>
-    </div>
-  `;
+    return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>${companyName}</title></head>
+<body style="margin:0;padding:0;background-color:#F3F4F6;-webkit-font-smoothing:antialiased;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F3F4F6;">
+<tr><td align="center" style="padding:32px 16px;">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06);">
+        <tr>
+            <td style="background:linear-gradient(135deg,#1E3A8A 0%,#2563EB 100%);padding:32px 40px;text-align:center;">
+                <img src="${logoUrl}" alt="${companyName}" width="48" height="48" style="display:inline-block;width:48px;height:48px;border-radius:10px;margin-bottom:12px;" />
+                <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:22px;font-weight:700;color:#ffffff;letter-spacing:-0.3px;">${companyName}</div>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:36px 40px 24px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:15px;line-height:1.7;color:#374151;">
+                <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#111827;">${escapeHtml(title)}</h1>
+                <p style="margin:0 0 24px;white-space:pre-line;color:#374151;font-size:15px;">${escapeHtml(message)}</p>
+                <div style="text-align:center;margin:32px 0 8px;">
+                    <a href="${appUrl}" style="display:inline-block;background:#1E3A8A;color:#ffffff;font-size:16px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:8px;">
+                        Open ${websiteName}
+                    </a>
+                </div>
+            </td>
+        </tr>
+        <tr><td style="padding:0 40px;"><div style="border-top:1px solid #E5E7EB;"></div></td></tr>
+        <tr>
+            <td style="padding:24px 40px 32px;text-align:center;font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;color:#9CA3AF;line-height:1.6;">
+                <div>&copy; ${year} ${companyName}. All rights reserved.</div>
+                <div style="margin-top:4px;">
+                    <a href="${appUrl}" style="color:#2563EB;text-decoration:none;">${websiteName}</a>
+                    ${supportEmail ? ` &middot; <a href="mailto:${supportEmail}" style="color:#2563EB;text-decoration:none;">${escapeHtml(supportEmail)}</a>` : ""}
+                </div>
+            </td>
+        </tr>
+    </table>
+</td></tr>
+</table>
+</body>
+</html>`;
 }
