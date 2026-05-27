@@ -46,15 +46,15 @@ export const footerContent = {
         },
     ],
     contact: {
-        email: "info@vauldex.co.uk",
-        phone: "+44 7537 167610",
-        address: "1 Brook St, Nottingham, United Kingdom, NG1 1AR",
+        email: process.env.NEXT_PUBLIC_COMPANY_EMAIL || "contact@cheffmate.co.uk",
+        phone: process.env.NEXT_PUBLIC_COMPANY_PHONE || "",
+        address: process.env.NEXT_PUBLIC_COMPANY_ADDRESS || "",
     },
 
     legal: {
-        companyName: "PREMIUM SERVICE PROVIDERS LTD",
-        companyNumber: "15885598",
-        address: "1 Brook St, Nottingham, United Kingdom, NG1 1AR",
+        companyName: process.env.NEXT_PUBLIC_COMPANY_LEGAL_NAME || process.env.NEXT_PUBLIC_COMPANY_NAME || "",
+        companyNumber: process.env.NEXT_PUBLIC_COMPANY_NUMBER || "",
+        address: process.env.NEXT_PUBLIC_COMPANY_ADDRESS || "",
     },
     socials: [],
 };
