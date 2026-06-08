@@ -3,6 +3,7 @@ export const DISPLAY_CURRENCIES = [
     "EUR",
     "GBP",
     "AUD",
+    "CAD",
     // "NOK",
 ] as const;
 
@@ -23,6 +24,7 @@ export const CURRENCY_SIGNS: Record<Currency, string> = {
     GBP: "£",
     EUR: "€",
     AUD: "A$",
+    CAD: "C$",
     NOK: "kr",
 };
 
@@ -31,6 +33,7 @@ export const CURRENCY_PER_GBP: Record<Currency, number> = {
     GBP: 1,
     EUR: 1.17,
     AUD: 1.93,
+    CAD: 1.72,
     NOK: 13.6,
 };
 
