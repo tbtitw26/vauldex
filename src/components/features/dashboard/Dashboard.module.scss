@@ -1,10 +1,43 @@
 .dashboard {
-  display: grid;
-  grid-template-columns: 7fr 3fr;
-  align-items: stretch;
+  display: flex;
+  flex-direction: column;
   gap: 1.5rem;
+}
 
-  @media (max-width: 900px) {
-    grid-template-columns: 1fr;
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--border-color, #E5E7EB);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
   }
+}
+
+.tab {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-secondary, #6B7280);
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.2s ease, border-color 0.2s ease;
+
+  &:hover {
+    color: var(--primary-color, #2563EB);
+  }
+}
+
+.tabActive {
+  color: var(--primary-color, #2563EB);
+  border-bottom-color: var(--primary-color, #2563EB);
+}
+
+.tabContent {
+  min-height: 200px;
 }

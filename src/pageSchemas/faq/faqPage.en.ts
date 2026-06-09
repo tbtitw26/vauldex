@@ -4,7 +4,7 @@ import { COMPANY_NAME, COMPANY_EMAIL } from "@/resources/constants";
 const faqSchema: PageSchema = {
     meta: {
         title: `FAQ — ${COMPANY_NAME}`,
-        description: `Frequently Asked Questions about ${COMPANY_NAME}: instant CV builder, optional expert review in 24h, revisions, and professional career support.`,
+        description: `Frequently Asked Questions about ${COMPANY_NAME}: instant CV builder, career documents, interview prep, salary negotiation, and professional career support.`,
         keywords: [
             `${COMPANY_NAME} FAQ`,
             "resume builder",
@@ -12,6 +12,10 @@ const faqSchema: PageSchema = {
             "ATS resume",
             "career support",
             "cv review support",
+            "recommendation letter",
+            "interview preparation",
+            "salary negotiation",
+            "career roadmap",
         ],
         canonical: "/faq",
         ogImage: {
@@ -83,7 +87,31 @@ const faqSchema: PageSchema = {
                 },
                 {
                     question: "Do you provide career advice?",
-                    answer: `Manager Review may include practical suggestions to improve how your experience is presented.`,
+                    answer: `Yes! Beyond CVs, we offer career roadmaps with 1-3-5 year plans, salary negotiation scripts, and interview preparation kits — all tailored to your experience and industry.`,
+                },
+                {
+                    question: "What career documents can I generate?",
+                    answer: `We offer six types of career documents: Recommendation Letters, Thank You Emails, Interview Preparation Kits, Portfolio & Bio content, Salary Negotiation Scripts, and Career Development Roadmaps. All are AI-powered and personalized to your background.`,
+                },
+                {
+                    question: "How does the Recommendation Letter work?",
+                    answer: `Our AI generates a professional recommendation letter written from the perspective of a former manager or colleague. You can target it to a specific company and position for maximum impact.`,
+                },
+                {
+                    question: "What is the Interview Prep Kit?",
+                    answer: `It generates the most likely interview questions for your specific role and industry, along with recommended answers based on your actual work experience. It also includes questions to ask the interviewer and key talking points.`,
+                },
+                {
+                    question: "Can I get help with salary negotiation?",
+                    answer: `Yes. Our Salary Negotiation Script includes market salary analysis, opening statements, counter-offer scripts for different scenarios, key arguments, and non-salary benefits to negotiate.`,
+                },
+                {
+                    question: "What is the Career Roadmap?",
+                    answer: `It's a personalized 1-3-5 year career development plan. It analyzes your current position, identifies skill gaps, recommends certifications and courses, and maps out target roles and milestones.`,
+                },
+                {
+                    question: "Do career documents cost the same as CVs?",
+                    answer: `Career documents range from 10 to 25 tokens depending on the type. Thank You Emails are 10 tokens, while Interview Prep Kits and Career Roadmaps are 20 tokens. The same token balance works for all services.`,
                 }
             ],
         },

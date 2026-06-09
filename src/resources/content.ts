@@ -18,7 +18,8 @@ export const headerContent = {
         {label: "Pricing", href: "/pricing"},
         {label: "Contact", href: "/contact-us"},
         {label: "Faq", href: "/faq"},
-        {label: "Templates", href: "/templates"}
+        {label: "Templates", href: "/templates"},
+        {label: "Career Services", href: "/career-services"}
 
     ]
 };

@@ -3,12 +3,14 @@ import {COMPANY_NAME} from "@/resources/constants";
 
 const schema: PageSchema = {
     meta: {
-        title: `${COMPANY_NAME} — Instant CVs or Expert Review`,
-        description: `${COMPANY_NAME} instantly creates ATS-ready CVs or provides a polished reviewed version within 24 hours.`,
+        title: `${COMPANY_NAME} — CVs, Career Documents & Interview Prep`,
+        description: `${COMPANY_NAME} instantly creates ATS-ready CVs, recommendation letters, interview prep kits, salary negotiation scripts, and more.`,
         keywords: [
             "cv maker", "resume builder", "ATS resume", "instant cv",
             "professional resume", "cv review", "career success",
-            "HR resume review", "cover letter builder"
+            "HR resume review", "cover letter builder",
+            "recommendation letter generator", "interview preparation",
+            "salary negotiation", "career roadmap", "portfolio bio"
         ],
         canonical: "/",
         ogImage: {
@@ -27,9 +29,9 @@ const schema: PageSchema = {
         {
             type: "custom",
             component: "HeroSection",
-            title: "Two Ways to Build Your Career",
-            highlight: "Instant CV or Expert Review",
-            description: `Create an ATS-optimized CV instantly or get a polished reviewed version in 24 hours.`,
+            title: "Your Complete Career Toolkit",
+            highlight: "CVs, Letters & Career Strategy",
+            description: `Create an ATS-optimized CV, generate recommendation letters, prepare for interviews, and plan your career — all in one platform.`,
             primaryCta: {text: "Create My CV Now", link: "/dashboard"},
             secondaryCta: {text: "See Templates", link: "/templates"},
             image: "image1",
@@ -40,8 +42,9 @@ const schema: PageSchema = {
             component: "Marquee",
             items: [
                 {text: "Used by professionals"},
-                {text: "Helping users create CVs"},
+                {text: "AI-powered career documents"},
                 {text: "Used internationally"},
+                {text: "Interview prep & salary negotiation"},
                 {text: "Built with modern HR best practices"},
             ],
         },
@@ -50,12 +53,14 @@ const schema: PageSchema = {
             type: "custom",
             component: "ValuesIcons",
             title: "Why Choose Us?",
-            description: `${COMPANY_NAME} blends AI speed with human expertise.`,
+            description: `${COMPANY_NAME} blends AI speed with human expertise — for CVs and beyond.`,
             values: [
                 {icon: "⚡", title: "Instant CV", text: "Generate a professional CV in seconds."},
                 {icon: "🕒", title: "24h Review", text: "Optional review helps refine your CV."},
                 {icon: "📑", title: "ATS Compliance", text: "Optimized to pass filters."},
-                {icon: "🎨", title: "Modern Templates", text: "Beautiful, professional designs."}
+                {icon: "🎨", title: "Modern Templates", text: "Beautiful, professional designs."},
+                {icon: "📝", title: "Career Documents", text: "Letters, bios, and negotiation scripts."},
+                {icon: "🎯", title: "Interview Prep", text: "Tailored questions and answers for your role."}
             ]
         },
 
@@ -128,6 +133,76 @@ const schema: PageSchema = {
         },
 
         /* --------------------------------------------------------------
+         *  CAREER SERVICES — BEYOND THE CV
+         * ------------------------------------------------------------*/
+        {
+            type: "custom",
+            component: "InfoBlock",
+            title: "More Than Just a CV Builder",
+            description: "Go beyond resumes with our full suite of AI-powered career documents — from recommendation letters to salary negotiation scripts.",
+            icon: "🚀",
+            align: "center",
+        },
+
+        {
+            type: "grid",
+            columns: 3,
+            gap: "2rem",
+            cards: [
+                {
+                    image: "image4",
+                    title: "Recommendation Letters",
+                    description: "Professional letters from a former manager's perspective, tailored to your target company and role.",
+                    buttonLink: "/career-services",
+                    buttonText: "Generate Letter",
+                },
+                {
+                    image: "image5",
+                    title: "Interview Prep Kit",
+                    description: "Top questions for your specific role and industry, with recommended answers based on your experience.",
+                    buttonLink: "/career-services",
+                    buttonText: "Prepare Now",
+                },
+                {
+                    image: "image6",
+                    title: "Salary Negotiation Script",
+                    description: "Data-driven negotiation strategy with scripts for different offer scenarios and counter-offers.",
+                    buttonLink: "/career-services",
+                    buttonText: "Get Your Script",
+                },
+            ],
+        },
+
+        {
+            type: "grid",
+            columns: 3,
+            gap: "2rem",
+            cards: [
+                {
+                    image: "image7",
+                    title: "Thank You Email",
+                    description: "Post-interview follow-up that reinforces your candidacy and keeps you top of mind.",
+                    buttonLink: "/career-services",
+                    buttonText: "Write Email",
+                },
+                {
+                    image: "image8",
+                    title: "Portfolio & Bio",
+                    description: "Complete personal website copy: hero tagline, about me, services, and project showcases.",
+                    buttonLink: "/career-services",
+                    buttonText: "Build Bio",
+                },
+                {
+                    image: "image9",
+                    title: "Career Roadmap",
+                    description: "A 1-3-5 year development plan with target roles, skills to acquire, and milestones.",
+                    buttonLink: "/career-services",
+                    buttonText: "Plan Career",
+                },
+            ],
+        },
+
+        /* --------------------------------------------------------------
          *  VIDEO DEMO — PRODUCT IN ACTION
          * ------------------------------------------------------------*/
         {
@@ -179,19 +254,6 @@ const schema: PageSchema = {
             title: "Our CV Templates",
             description: "Explore our professionally designed, ATS-optimized resume templates to find the perfect fit for your industry and style."
         },
-
-        {
-            type: "custom",
-            component: "TeamGrid",
-            title: "Meet Our Team",
-            description: `Behind ${COMPANY_NAME} is a team focused on combining technology with practical hiring insight.`,
-            members: [
-                { name: "Anna Kowalski", role: "HR Manager", bio: "Focused on recruitment, CV quality, and career guidance.", image: "team1" },
-                { name: "John Doe", role: "Lead Developer", bio: "Building scalable resume tech solutions.", image: "team2" },
-                { name: "Maria Lopez", role: "Designer", bio: "Crafting clean, professional CV templates.", image: "team3" }
-            ]
-        },
-
 
         /* --------------------------------------------------------------
          *  PRICING
@@ -281,21 +343,24 @@ const schema: PageSchema = {
             testimonials: [
                 {
                     name: "Yaroslav Krupa",
-                    role: "Marketing Specialist",
+                    role: "Marketing Specialist — Landed a role at a top agency",
                     image: "review1",
-                    text: "I got an instant CV and interviews the same week!"
+                    text: "I generated my CV on Monday, used the Interview Prep Kit to prepare for Wednesday's call, and got the offer by Friday. The salary negotiation script helped me negotiate 15% above their initial offer. This platform literally changed my career trajectory.",
+                    rating: 5,
                 },
                 {
-                    name: "John Smith",
-                    role: "Software Engineer",
+                    name: "Thomas Andersson",
+                    role: "UX Designer — Freelancer building a personal brand",
                     image: "review2",
-                    text: "Expert review made my CV 2x better."
+                    text: "The Portfolio & Bio generator saved me a week of writing. I got a hero tagline, a complete About Me section, project descriptions, and even a LinkedIn summary — all in one go. My personal website looks professional and the tone is exactly what I wanted.",
+                    rating: 5,
                 },
                 {
-                    name: "Maria Lopez",
-                    role: "Project Manager",
+                    name: "Elena Vasquez",
+                    role: "Finance Analyst — Relocated to a new market",
                     image: "review3",
-                    text: "Quick, clean, and professional."
+                    text: "Moving from Latin America to Europe meant I needed to completely rethink my CV and understand local salary expectations. The platform generated a region-specific salary negotiation script and a recommendation letter targeted at European companies. Worth every token.",
+                    rating: 5,
                 },
             ],
         },
@@ -311,6 +376,8 @@ const schema: PageSchema = {
                 {question: "Can I download in PDF?", answer: "Yes — PDF export is included."},
                 {question: "Is my data secure?", answer: "We follow strict GDPR protocols."},
                 {question: "Cover letters included?", answer: "Yes — in Premium plan."},
+                {question: "What career services do you offer?", answer: "Beyond CVs, we generate recommendation letters, thank-you emails, interview prep kits, portfolio bios, salary negotiation scripts, and career roadmaps."},
+                {question: "How do career documents work?", answer: "Fill in your professional background once, select the document type, and our AI generates a polished, ready-to-use document in seconds."},
             ]
         },
 

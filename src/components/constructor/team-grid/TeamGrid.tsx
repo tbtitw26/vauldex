@@ -1,15 +1,11 @@
 "use client";
 
-import React from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { EffectCoverflow, Pagination, Autoplay } from "swiper/modules";
-import { motion } from "framer-motion";
+import React, { useState, useCallback, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import "swiper/css";
-import "swiper/css/effect-coverflow";
-import "swiper/css/pagination";
-
 import styles from "./TeamGrid.module.scss";
+import { media as mediaMap } from "@/resources/media";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
 interface TeamMember {
     name: string;
@@ -18,80 +14,108 @@ interface TeamMember {
     image: string;
 }
 
-interface TeamSliderProps {
+interface Props {
     title?: string;
     description?: string;
     members: TeamMember[];
 }
-
-import { media as mediaMap } from "@/resources/media";
 
 function resolveMedia(key?: string) {
     if (!key) return "";
     return (mediaMap as Record<string, any>)[key] || "";
 }
 
+const TeamGrid: React.FC<Props> = ({ title, description, members }) => {
+    const [active, setActive] = useState(0);
+    const [direction, setDirection] = useState(0);
 
-const TeamGrid: React.FC<TeamSliderProps> = ({ title, description, members }) => {
+    const go = useCallback(
+        (dir: number) => {
+            setDirection(dir);
+            setActive((prev) => (prev + dir + members.length) % members.length);
+        },
+        [members.length]
+    );
+
+    useEffect(() => {
+        const timer = setInterval(() => go(1), 5000);
+        return () => clearInterval(timer);
+    }, [go]);
+
+    const variants = {
+        enter: (d: number) => ({ x: d > 0 ? 80 : -80, opacity: 0 }),
+        center: { x: 0, opacity: 1 },
+        exit: (d: number) => ({ x: d > 0 ? -80 : 80, opacity: 0 }),
+    };
+
     return (
         <section className={styles.section}>
             <motion.div
                 className={styles.head}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
+                transition={{ duration: 0.5 }}
             >
                 {title && <h2 className={styles.title}>{title}</h2>}
                 {description && <p className={styles.desc}>{description}</p>}
             </motion.div>
 
-            <Swiper
-                modules={[EffectCoverflow, Pagination, Autoplay]}
-                effect="coverflow"
-                grabCursor={true}
-                centeredSlides={true}
-                slidesPerView="auto"
-                coverflowEffect={{
-                    rotate: 0,
-                    stretch: 0,
-                    depth: 150,
-                    modifier: 2,
-                    slideShadows: true,
-                }}
-                autoplay={{
-                    delay: 3000,
-                    disableOnInteraction: true,
-                }}
-                pagination={{ clickable: true }}
-                className={styles.slider}
-            >
-                {members.map((m, i) => (
-                    <SwiperSlide key={i} className={styles.slide}>
+            <div className={styles.stage}>
+                <button className={styles.arrow} onClick={() => go(-1)} aria-label="Previous">
+                    <FiChevronLeft />
+                </button>
+
+                <div className={styles.cardWrapper}>
+                    <AnimatePresence mode="wait" custom={direction}>
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.85 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.6 }}
+                            key={active}
                             className={styles.card}
+                            custom={direction}
+                            variants={variants}
+                            initial="enter"
+                            animate="center"
+                            exit="exit"
+                            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
                         >
-                            <Image
-                                src={resolveMedia(m.image)}
-                                alt={m.name}
-                                className={styles.photo}
-                                width={500}
-                                height={500}
-                            />
+                            <div className={styles.imageWrap}>
+                                <Image
+                                    src={resolveMedia(members[active].image)}
+                                    alt={members[active].name}
+                                    className={styles.photo}
+                                    width={400}
+                                    height={400}
+                                />
+                            </div>
 
                             <div className={styles.info}>
-                                <h3 className={styles.name}>{m.name}</h3>
-                                <p className={styles.role}>{m.role}</p>
-                                <p className={styles.bio}>{m.bio}</p>
+                                <h3 className={styles.name}>{members[active].name}</h3>
+                                <span className={styles.role}>{members[active].role}</span>
+                                <p className={styles.bio}>{members[active].bio}</p>
                             </div>
                         </motion.div>
-                    </SwiperSlide>
+                    </AnimatePresence>
+                </div>
+
+                <button className={styles.arrow} onClick={() => go(1)} aria-label="Next">
+                    <FiChevronRight />
+                </button>
+            </div>
+
+            {/* Dots */}
+            <div className={styles.dots}>
+                {members.map((_, i) => (
+                    <button
+                        key={i}
+                        className={`${styles.dot} ${i === active ? styles.dotActive : ""}`}
+                        onClick={() => {
+                            setDirection(i > active ? 1 : -1);
+                            setActive(i);
+                        }}
+                        aria-label={`Go to member ${i + 1}`}
+                    />
                 ))}
-            </Swiper>
+            </div>
         </section>
     );
 };

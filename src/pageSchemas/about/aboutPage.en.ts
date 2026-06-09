@@ -154,19 +154,6 @@ and land opportunities they truly deserve.`,
             },
         },
 
-        // 🔹 Meet the Team
-        {
-            type: "custom",
-            component: "TeamGrid",
-            title: "Meet Our Team",
-            description: `Behind ${COMPANY_NAME} is a team of people working across product, design, and review support.`,
-            members: [
-                { name: "Anna Kowalski", role: "HR Manager", bio: "Focused on recruitment, CV quality, and career guidance.", image: "team1" },
-                { name: "John Doe", role: "Lead Developer", bio: "Building scalable resume tech solutions.", image: "team2" },
-                { name: "Maria Lopez", role: "Designer", bio: "Crafting clean, professional CV templates.", image: "team3" }
-            ]
-        },
-
         // 🔹 How It Works
         {
             type: "custom",

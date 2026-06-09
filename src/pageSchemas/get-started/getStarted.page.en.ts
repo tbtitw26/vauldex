@@ -4,7 +4,7 @@ import {COMPANY_NAME} from "@/resources/constants";
 const schema: PageSchema = {
     meta: {
         title: `Get Started — ${COMPANY_NAME}`,
-        description: `Learn how ${COMPANY_NAME} helps you create a professional CV instantly, with an optional expert review delivered within 24 hours.`,
+        description: `Learn how ${COMPANY_NAME} helps you create a professional CV, generate career documents, and prepare for interviews — all powered by AI.`,
         keywords: [
             `${COMPANY_NAME} get started`,
             "cv maker onboarding",
@@ -12,6 +12,9 @@ const schema: PageSchema = {
             "instant cv",
             "manager review cv",
             "professional cv service",
+            "career documents",
+            "interview preparation",
+            "recommendation letter",
         ],
         canonical: "/get-started",
         ogImage: {
@@ -28,8 +31,7 @@ const schema: PageSchema = {
             component: "HeroSection",
             title: `Get Started with ${COMPANY_NAME}`,
             highlight: "Our Mission & Vision",
-            description: `With ${COMPANY_NAME}, you can either generate your CV instantly using our professional templates, 
-    or select the Manager Review option to receive a polished version with additional review support within 24 hours.`,
+            description: `With ${COMPANY_NAME}, you can generate CVs, recommendation letters, interview prep kits, and more — all powered by AI. Choose instant generation or optional Manager Review for extra polish.`,
             image: "image5",
         },
 
@@ -42,6 +44,8 @@ const schema: PageSchema = {
                 "🎨 Professional templates",
                 "👩‍💼 Optional review (24h)",
                 "📑 ATS-optimized resumes",
+                "📝 Recommendation letters & career docs",
+                "🎯 Interview prep & salary negotiation",
                 "✅ Built for modern job seekers",
             ],
         },
@@ -55,6 +59,8 @@ const schema: PageSchema = {
                 {icon: "👩‍💼", title: "Expert Option", text: "Add review support for extra refinement in 24h"},
                 {icon: "📑", title: "ATS-Friendly", text: "Optimized to pass Applicant Tracking Systems"},
                 {icon: "🎨", title: "Modern Templates", text: "Choose sleek, professional designs"},
+                {icon: "📝", title: "Career Documents", text: "Letters, bios, negotiation scripts, and more"},
+                {icon: "🎯", title: "Interview Prep", text: "Role-specific questions with tailored answers"},
             ],
         },
 
@@ -97,7 +103,46 @@ const schema: PageSchema = {
             ],
         },
 
-        // 🟣 Final CTA
+        // Career Services Section
+        {
+            type: "custom",
+            component: "InfoBlock",
+            title: "Beyond CVs — Full Career Toolkit",
+            description: "Use the same professional data to generate recommendation letters, interview prep kits, salary negotiation scripts, and more.",
+            icon: "🚀",
+            align: "center",
+        },
+
+        {
+            type: "grid",
+            columns: 3,
+            gap: "2rem",
+            cards: [
+                {
+                    image: "image7",
+                    title: "Recommendation Letters",
+                    description: "Professional letters from a manager's perspective, tailored to your target company.",
+                    buttonLink: "/career-services",
+                    buttonText: "Generate Letter",
+                },
+                {
+                    image: "image8",
+                    title: "Interview Prep Kit",
+                    description: "Top questions for your role with recommended answers based on your experience.",
+                    buttonLink: "/career-services",
+                    buttonText: "Prepare Now",
+                },
+                {
+                    image: "image9",
+                    title: "Salary Negotiation",
+                    description: "Data-driven scripts for different offer scenarios with market analysis.",
+                    buttonLink: "/career-services",
+                    buttonText: "Get Script",
+                },
+            ],
+        },
+
+        // Final CTA
         {
             type: "section",
             align: "center",
@@ -105,7 +150,7 @@ const schema: PageSchema = {
                 type: "text",
                 title: "Start Your Career the Right Way",
                 description:
-                    `Sign up today, fill in your details, and either download your CV instantly or choose review support within 24 hours.`,
+                    `Sign up today, fill in your details, and generate any career document — CVs, letters, interview prep, and strategy guides — all from one platform.`,
                 centerTitle: true,
                 centerDescription: true,
             },

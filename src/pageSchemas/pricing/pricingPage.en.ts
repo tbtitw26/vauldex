@@ -59,6 +59,8 @@ const schema: PageSchema = {
                     features: [
                         "Full access to all features",
                         "AI-powered CV generation",
+                        "Career documents & letters",
+                        "Interview prep & salary scripts",
                         "All templates & formats",
                         "Tokens never expire"
                     ],
@@ -76,6 +78,8 @@ const schema: PageSchema = {
                     features: [
                         "Full access to all features",
                         "AI-powered CV generation",
+                        "Career documents & letters",
+                        "Interview prep & salary scripts",
                         "All templates & formats",
                         "Tokens never expire"
                     ],
@@ -93,6 +97,8 @@ const schema: PageSchema = {
                     features: [
                         "Full access to all features",
                         "AI-powered CV generation",
+                        "Career documents & letters",
+                        "Interview prep & salary scripts",
                         "All templates & formats",
                         "Tokens never expire"
                     ],
@@ -110,6 +116,8 @@ const schema: PageSchema = {
                     features: [
                         "Full access to all features",
                         "AI-powered CV generation",
+                        "Career documents & letters",
+                        "Interview prep & salary scripts",
                         "All templates & formats",
                         "Tokens never expire"
                     ],
@@ -119,7 +127,72 @@ const schema: PageSchema = {
             ],
         },
 
-        // 🔹 Section з текстом і фото
+        // Token usage guide
+        {
+            type: "custom",
+            component: "InfoBlock",
+            title: "What Can You Do With Tokens?",
+            description: "Every service uses tokens — buy once, spend on anything you need. Here’s a quick guide to token costs.",
+            icon: "🪙",
+            align: "center",
+        },
+
+        {
+            type: "grid",
+            columns: 4,
+            gap: "1.5rem",
+            cards: [
+                {
+                    title: "Instant CV",
+                    description: "AI-generated professional CV with your choice of template.",
+                    buttonText: "30 tokens",
+                    buttonLink: "/dashboard",
+                },
+                {
+                    title: "Manager Review CV",
+                    description: "Expert-refined CV delivered within 24 hours.",
+                    buttonText: "60 tokens",
+                    buttonLink: "/dashboard",
+                },
+                {
+                    title: "Recommendation Letter",
+                    description: "Formal letter from a manager’s perspective.",
+                    buttonText: "20 tokens",
+                    buttonLink: "/career-services",
+                },
+                {
+                    title: "Interview Prep Kit",
+                    description: "Role-specific questions with tailored answers.",
+                    buttonText: "20 tokens",
+                    buttonLink: "/career-services",
+                },
+                {
+                    title: "Portfolio & Bio",
+                    description: "Personal website content package.",
+                    buttonText: "25 tokens",
+                    buttonLink: "/career-services",
+                },
+                {
+                    title: "Salary Negotiation",
+                    description: "Negotiation scripts with market data.",
+                    buttonText: "15 tokens",
+                    buttonLink: "/career-services",
+                },
+                {
+                    title: "Career Roadmap",
+                    description: "1-3-5 year career development plan.",
+                    buttonText: "20 tokens",
+                    buttonLink: "/career-services",
+                },
+                {
+                    title: "Thank You Email",
+                    description: "Post-interview follow-up email.",
+                    buttonText: "10 tokens",
+                    buttonLink: "/career-services",
+                },
+            ],
+        },
+
         {
             type: "section",
             left: {
@@ -127,11 +200,12 @@ const schema: PageSchema = {
                 component: "InfoBlock",
                 title: "Why Upgrade?",
                 description:
-                    "A reviewed CV can help improve clarity, structure, and presentation for your applications.",
+                    "More tokens means more documents — CVs, letters, interview prep, salary scripts, and career roadmaps. One balance powers your entire job search.",
                 bullets: [
-                    "Instant download in multiple formats",
-                    "Optional manual review",
+                    "Instant download in PDF format",
+                    "Optional manual CV review",
                     "ATS-friendly formatting",
+                    "Full career document suite",
                 ],
             },
             right: {
@@ -142,7 +216,6 @@ const schema: PageSchema = {
             },
         },
 
-        // 🔹 FAQ в кінці
         {
             type: "faq",
             items: [
@@ -159,7 +232,17 @@ const schema: PageSchema = {
                 {
                     question: "Can I upgrade later?",
                     answer:
-                        "Of course! You can start with the Basic plan and upgrade to Pro or Premium whenever you want.",
+                        "Of course! You can start with the Starter plan and upgrade to Pro or Premium whenever you want.",
+                },
+                {
+                    question: "Can I use tokens for career documents too?",
+                    answer:
+                        "Yes! The same tokens work for all services — CVs, recommendation letters, interview prep kits, salary negotiation scripts, portfolio bios, and career roadmaps.",
+                },
+                {
+                    question: "Do tokens expire?",
+                    answer:
+                        "No. Tokens never expire. Buy once and use them whenever you need a new document.",
                 },
             ],
         },

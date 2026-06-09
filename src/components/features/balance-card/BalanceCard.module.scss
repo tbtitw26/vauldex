@@ -1,11 +1,12 @@
 .balanceCard {
-  background: #fff;
-  border-radius: 1rem;
-  padding: 1.5rem 2rem;
+  background: var(--surface-color, #FFFFFF);
+  border-radius: 12px;
+  padding: 1.25rem 1.75rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--border-color, #E5E7EB);
 
   @media (max-width: 600px) {
     flex-direction: column;
@@ -15,20 +16,24 @@
 
   &__info {
     p {
-      font-size: 0.95rem;
-      color: #6b7280;
+      font-size: 0.85rem;
+      color: var(--text-muted, #9CA3AF);
       margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
     }
 
     h2 {
-      font-size: 1.8rem;
+      font-size: 1.6rem;
       font-weight: 700;
-      margin: 0.25rem 0 0;
-      color: var(--primary-color);
+      margin: 0.15rem 0 0;
+      color: var(--primary-color, #1E3A8A);
 
       span {
-        font-size: 1.2rem;
-        font-weight: 600;
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--text-secondary, #6B7280);
       }
     }
   }
@@ -36,15 +41,16 @@
   &__actions {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
   }
 
   &__topUpBtn {
     background: linear-gradient(135deg, #4f46e5, #6366f1);
     color: #fff;
-    padding: 0.6rem 1.4rem;
+    padding: 0.55rem 1.3rem;
     border-radius: 8px;
     font-weight: 600;
+    font-size: 0.9rem;
     transition: 0.2s;
     text-decoration: none;
 

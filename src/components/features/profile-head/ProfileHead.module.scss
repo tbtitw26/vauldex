@@ -1,12 +1,16 @@
 .hero {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 2rem 0;
+  gap: 1.25rem;
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, var(--primary-color, #1E3A8A) 0%, #2563EB 100%);
+  border-radius: 14px;
+  color: #FFFFFF;
 
   &__icon {
-    font-size: 3rem;
-    color: var(--primary-color);
+    font-size: 2.8rem;
+    color: rgba(255, 255, 255, 0.9);
+    flex-shrink: 0;
   }
 
   &__text {
@@ -15,14 +19,15 @@
   }
 
   &__title {
-    font-size: 2rem;
+    font-size: 1.6rem;
     font-weight: 700;
     margin: 0;
+    color: #FFFFFF;
   }
 
   &__subtitle {
-    margin: 0.25rem 0 0;
-    color: #6b7280;
-    font-size: 1rem;
+    margin: 0.2rem 0 0;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.9rem;
   }
 }
