@@ -1,40 +1,33 @@
 // Visible on the frontend selectors only.
 export const DISPLAY_CURRENCIES = [
-    "EUR",
-    "GBP",
     "AUD",
     "CAD",
-    // "NOK",
+    "NZD",
 ] as const;
 
 // Supported by checkout/backend, including currencies that can fall back to EUR until their Spoynt services are configured.
 export const SUPPORTED_CURRENCIES = [
     ...DISPLAY_CURRENCIES,
-    "NOK",
 ] as const;
 
 export type Currency = (typeof SUPPORTED_CURRENCIES)[number];
 
-export const DEFAULT_PAYMENT_CURRENCY: Currency = "EUR";
-export const DEFAULT_DISPLAY_CURRENCY: Currency = "EUR";
+export const DEFAULT_PAYMENT_CURRENCY: Currency = "AUD";
+export const DEFAULT_DISPLAY_CURRENCY: Currency = "AUD";
 export const MIN_GBP_AMOUNT = 10;
 export const TOKENS_PER_GBP = 100;
 
 export const CURRENCY_SIGNS: Record<Currency, string> = {
-    GBP: "£",
-    EUR: "€",
     AUD: "A$",
     CAD: "C$",
-    NOK: "kr",
+    NZD: "NZ$",
 };
 
 // 1 GBP = X target currency units
 export const CURRENCY_PER_GBP: Record<Currency, number> = {
-    GBP: 1,
-    EUR: 1.17,
     AUD: 1.93,
     CAD: 1.72,
-    NOK: 13.6,
+    NZD: 2.29,
 };
 
 export function isSupportedCurrency(value: string): value is Currency {
