@@ -219,6 +219,7 @@ export async function POST(req: NextRequest) {
             forceSuccess,
             fallbackToGBP: resolution.fallbackToGBP,
             missingServiceEnvKey: resolution.missingServiceEnvKey,
+            customer,
         });
 
         if (resolution.fallbackToGBP) {
@@ -377,10 +378,11 @@ export async function POST(req: NextRequest) {
             responseAmount: responseAttrs?.amount,
             responseStatus: responseAttrs?.status,
             responseResolution: responseAttrs?.resolution,
+            hppUrl: responseAttrs?.hpp_url,
+            flowAction: responseAttrs?.flow_data?.action,
             checkoutUrl: responseAttrs?.checkout_url,
             flow: responseAttrs?.flow,
             fallbackToGBP: resolution.fallbackToGBP,
-            full: json,
         });
 
         if (!cpi) {
